@@ -4,6 +4,8 @@
             "name": "latexmk",
             "command": "latexmk",
             "args": [
+                "-f",
+                "-pdflatex",
                 "-synctex=1",
                 "-interaction=nonstopmode",
                 "-file-line-error",
