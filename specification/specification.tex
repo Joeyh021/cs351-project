@@ -48,7 +48,7 @@ The usual solution to custom interface requirements is FPGAs (Field Programmable
 \end{figure}
 
 
-It is this problem that we intend to tackle: developing a flexible, low cost, easy to use hardware interface for embedded systems. The inspiration for this comes from the RP2040: a dual-core ARM-based microcontroller designed by Raspberry Pi Ltd released in 2021. The flagship feature of the RP2040 is PIO (Programmable I/O blocks), which are as I have described in my introduction. Two PIO blocks are included in the RP2040, each of which includes 4 state machines, as shown in figure \ref{fig:pio-block}.
+It is this problem that I intend to tackle: developing a flexible, low cost, easy to use hardware interface for embedded systems. The inspiration for this comes from the RP2040: a dual-core ARM-based microcontroller designed by Raspberry Pi Ltd released in 2021. The flagship feature of the RP2040 is PIO (Programmable I/O blocks), which are as I have described in my introduction. Two PIO blocks are included in the RP2040, each of which includes 4 state machines, as shown in figure \ref{fig:pio-block}.
 
 
 
@@ -86,7 +86,7 @@ again:
     \label{pioasm}
 \end{listing}
 
-Another similar hardware device from which we may draw inspiration is the Time Processor Unit (TPU), a device found in some Motorola microcontrollers. The TPU is a coprocessor engine designed to handle complex timing and I/O tasks, independently of the CPU. The TPU consists of a microengine and scheduler for precision timing and execution of instructions, and up to 16 timer channels connected to external pins. Communication with the rest of the system is done via a shared dual-port RAM. Similar to the RP2040, it works by processing and executing microinstructions written by the programmer. Figure \ref{fig:tpu} shows a high-level block diagram of the TPU \cite{tpu}.
+Another similar hardware device from which I may draw inspiration is the Time Processor Unit (TPU), a device found in some Motorola microcontrollers. The TPU is a coprocessor engine designed to handle complex timing and I/O tasks, independently of the CPU. The TPU consists of a microengine and scheduler for precision timing and execution of instructions, and up to 16 timer channels connected to external pins. Communication with the rest of the system is done via a shared dual-port RAM. Similar to the RP2040, it works by processing and executing microinstructions written by the programmer. Figure \ref{fig:tpu} shows a high-level block diagram of the TPU \cite{tpu}.
 
 \begin{figure}[]
     \centering
@@ -95,32 +95,26 @@ Another similar hardware device from which we may draw inspiration is the Time P
     \label{fig:tpu}
 \end{figure}
 
-Another major component of this project will be CHISEL, and rocket chip. intend to explore chisel as a HDL
+Another major component of this project will be Chisel and Rocket Chip. Chisel is a hardware description language embedded in the Scala programming language. Traditional HDLs such as Verilog and VHDL were originally designed for simulation, and were only later adopted for use in hardware synthesis. Such languages are also very old, and can be unergonomic when contrasted with modern programming languages and tooling. Chisel takes advantage of the modern features and functional style of Scala, and all the tooling and ecosystem around the JVM to provide a much more ergonomic and extensible development process and experience\cite{chisel}. I intend to explore Chisel as an alternative to Verilog for hardware design, evaluating what aspects of the development process it can improve, and also how easy it is to integrate into traditional FPGA workflows.
+
+Rocket Chip is an open source SoC generator that leverages Chisel to provide a library of hardware generators for RISC-V cores, caches and SoC interconnect. It's extensive parametrisation makes it flexible, and can be used to build anything from embedded microcontrollers to multi-core server class CPUs \cite{rocketchip}. It is easy to add custom components to Rocket Chip, which makes it an ideal candidate for experimentation, and build out to custom I/O devices into a fully-fledged SoC.
 
 \section{Objectives}
-Our goal is to expand on the prior work of current hardware devices and use CHISEL and Rocket Chip to build open source programmable I/O devices, integrated with RISC-V cores to create a complete microcontroller. Implementation will target FPGAs, as this allows for rapid prototyping and easy implementation and testing of hardware. The functional and non-functional requirements for our I/O device are as follows:
+My goal is to expand on the prior work of current hardware devices and use Chisel to build open source programmable I/O devices, integrated with Rocket RISC-V cores to create a complete microcontroller. Implementation will target FPGAs, as this allows for rapid prototyping and easy implementation and testing of hardware. The requirements for my I/O device are summarised below.
+
 \begin{itemize}
-    \item The device should be implement in CHISEL (NF)
-    \item The device should connect to external pins on the FPGA (F)
+    \item The device should be implemented using Chisel
+    \item The device should connect to external pins on the FPGA
     \item The device should be able to receive input
+    \item The device should be programmable using a simple DSL
+    \item The device should
 \end{itemize}
 
 
-- be implemented in chisel
-- Proof of concept i/o chisel code
-- Lay out high-level block design on paper
-- Extend proof of concept into skeleton for in HDL
-- Implement HDL one module at a time
-- Unit test HDL in simulation
+The secondary goal, once the HDL implementation is complete, is to build a microcontroller integrating the devices using Rocket Chip. The requirements for this are summarised below.
 
-The secondary goal, once the HDL implementation is complete, is to build a microcontroller integrating the devices. The requirements for this are as follows:
 \begin{itemize}
-    \item
-\end{itemize}
-
-Possible extensions to the project, should time permite, include:
-\begin{itemize}
-    \item
+    \item The microcontroller should contain at least one CPU core, programmable using the RISC-V ISA
 \end{itemize}
 
 \section{Timeline}
@@ -144,24 +138,42 @@ Table \ref{tab:timeline} gives a rough timeline for my project. Each of the task
         3-5              & Implement proof of concept I/O device in CHISEL                     \\ \hline
         6-8              & Lay out high-level block design                                     \\ \hline
         8-11             & Extend proof of concept into project skeleton based on block design \\ \hline
-        12-19            & Write HDL code, implementing and testing one module at a time       \\ \hline
-        20               & Develop and run integration tests in simulation                     \\ \hline
-        21-22            & Use Rocket Chip to integrate device with RISC-V cores               \\ \hline
-        23-25            & Load microcontroller onto FPGA and run tests                        \\ \hline
-        26-31            & Write report                                                        \\ \hline
+        12-18            & Write HDL code, implementing and testing one module at a time       \\ \hline
+        19               & Develop and run integration tests in simulation                     \\ \hline
+        20-21            & Use Rocket Chip to integrate device with RISC-V cores               \\ \hline
+        22-24            & Load microcontroller onto FPGA and run tests                        \\ \hline
+        25-31            & Write report                                                        \\ \hline
     \end{tabular}
     \caption{Project Timeline}
     \label{tab:timeline}
 \end{table}
 
 \section{Methodology}
-This project is very practical, and the bulk of my time will be spent writing and testing HDL code. As such, an appropriate software engineering methodology is required. My approach will be very plan based, first laying out a high-level block design on paper, then moving to lay out skeleton HDL code, then writing the code one module at a time. Any iteration on the design will require going back to the block design, necessitating a waterfall-style approach to development. When it comes to
+This project is very practical, and the bulk of my time will be spent writing and testing HDL code. As such, an appropriate software engineering methodology is required. My approach will be very plan based, first laying out a high-level block design on paper, then moving to lay out skeleton HDL code, then writing the code one module at a time. Any iteration on the design will require going back to the block design, necessitating a waterfall-style approach to development. When it comes to implementing each individual module I intend to take the opposite approach with a very flexible, agile methodology based on extreme programming with constant iteration and testing. This is made easy by the fact that I am working alone, and also do not have any customers or stakeholders besides myself.
 
-When it comes to testing, I intend to utilised test-driven development (TDD) heavily. Functional verification of hardware is very important
-testing methods (tdd)
+When it comes to testing, I intend to utilised test-driven development (TDD) heavily. Functional verification of hardware is very important, as it's much harder to tell to debug hardware designs than software, and synthesising and testing hardware on an FPGA can be time consuming. ChiselTest is a batteries-included a formal verification framework for Chisel that integrates with ScalaTest, the standard Scala testing framework, and with FIRRTL, Chisel's backend RTL compiler.  The idea of TDD is that I can use ChiselTest to write the testbench before or alongside the module, and then implement the module with confidence that it works as intended. A comprehensive test suite will allow me to develop iteratively and with confidence. \cite{chiselverification}
+
+
 \section{Resources}
-\section{Risk Assessment}
-\section{Legal, Social and Professional Issues}
+There are a few hardware and software resources I'll need access to for completing the project. These are outlined in table \ref{tab:resources}, along with explanations for each. Free, open source software tools and libraries such as Chisel, Scala, and Rocket Chip are not included as they are freely and readily available due to their open source licenses.
+
+\begin{table}[h!]
+    \centering
+    \begin{tabular}{|p{0.2\textwidth}|p{0.35\textwidth}|p{0.35\textwidth}|}
+        \hline
+        \textbf{Resource}          & \textbf{Explanation}                                                            & \textbf{Notes}                                                                                                                                   \\ \hline
+        FPGA development board     & Used as a synthesis target for the HDL, and for testing the I/O devices and SoC & I have a \href{https://digilent.com/reference/programmable-logic/nexys-a7/start}{Digilent Nexys A7 Board} on loan from the School of Engineering \\ \hline
+        Peripheral devices         & Used for testing a variety of interfaces and protocols with the  I/O devices    & I intend to purchase some sensors and LEDs that are designed to connect to the FPGA board                                                        \\ \hline
+        Xilinx Vivado Design Suite & FPGA development toolchain and IDE needed for working with FPGA                 & The School of Engineering has an education license                                                                                               \\ \hline
+        Workstation PC             & Needed for running Vivado and connection to FPGA board                          & I have a sufficiently capable Linux workstation, and I also have access to DCS \& SoE computer labs.                                             \\ \hline
+    \end{tabular}
+    \caption{Project Resources}
+    \label{tab:resources}
+\end{table}
+
+
+\section{Legal, Social, Ethical and Professional Issues}
+
 \bibliographystyle{../common/plainnat}
 \bibliography{../common/bibliography}
 
