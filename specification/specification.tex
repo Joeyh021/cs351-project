@@ -98,24 +98,41 @@ Another similar hardware device from which we draw inspiration is the Time Proce
     \label{fig:tpu}
 \end{figure}
 
-\subsection{CHISEL \& Rocket Chip}
+\subsection{Chisel \& Rocket Chip}
 
-Another major component of this project will be Chisel and Rocket Chip. Chisel is a hardware description language embedded in the Scala programming language. Traditional HDLs such as Verilog and VHDL were originally designed for simulation, and were only later adopted for use in hardware synthesis. Such languages are also very old, and can be unergonomic when contrasted with modern programming languages and tooling. Chisel takes advantage of the modern features and functional style of Scala, and all the tooling and ecosystem around the JVM to provide a much more ergonomic and extensible development process and experience\citep{chisel}. We intend to explore Chisel as an alternative to Verilog for hardware design, evaluating what aspects of the development process it can improve, and also how easy it is to integrate into traditional FPGA workflows.
+Another major component of this project will be Chisel and Rocket Chip. Chisel is a hardware description language embedded in the Scala programming language. Traditional HDLs such as Verilog and VHDL were originally designed for simulation, and were only later adopted for use in hardware synthesis. Such languages are also very old, and can be unergonomic when contrasted with modern programming languages and tooling. Chisel takes advantage of the modern features and functional style of Scala, and all the tooling and ecosystem around the JVM to provide a much more ergonomic and extensible development process and experience \citep{chisel}. We intend to explore Chisel as an alternative to Verilog for hardware design, evaluating what aspects of the development process it can improve, and also how easy it is to integrate into traditional FPGA workflows.
 
-Rocket Chip is an open source SoC generator that leverages Chisel to provide a library of hardware generators for RISC-V cores, caches and SoC interconnect. It's extensive parametrisation makes it flexible, and can be used to build anything from embedded microcontrollers to multi-core server class CPUs \citep{rocketchip}. It is easy to add custom components to Rocket Chip, which makes it an ideal candidate for experimentation, and build out to custom I/O devices into a fully-fledged SoC.
+Rocket Chip is an open source SoC generator that leverages Chisel to provide a library of hardware generators for RISC-V cores, caches and SoC interconnect. It's extensive parametrisation makes it flexible, and can be used to build anything from embedded microcontrollers to multi-core server class CPUs \citep{rocketchip}. It is easy to add custom components to Rocket Chip, which makes it an ideal candidate for experimentation, and to build out our custom I/O devices into a fully-fledged SoC. 
 
-Rocket Chip as also a major component of Chipyard, a larger SoC generation framework
 
-Exiting projects made with Chipyard include
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=0.7\textwidth]{../img/rocket-chip.png}
+    \caption{A CPU generated using Rocket Chip \citep{rocketchip}}
+    \label{fig:rocket}
+\end{figure}
 
-more about it i guess, waffle from the papers, rocket chip based projects
+
+Figure \ref{fig:rocket} shows an example of a system built using Rocket Chip, and demonstrates the many hardware generators within the framework:
+
+\begin{itemize}
+    \item The Rocket scalar core and BOOM out-of-order superscalar core are included, both of which optionally include FPUs and have configurable functional unit pipelines and branch predictors.
+    \item A variety of cache and TLB generators are included with configurable sizes and associativities.
+    \item RoCC, the Rocket Custom Compressor interface, is a template for application specific coprocessors.
+    \item Rocket Chip includes the Tile framework for generating custom cache-coherent sub-components, and TileLink for generating interconnect and cache controllers between them.
+    \item Generators for AMBA busses are included for communication with external peripherals and controllers \cite{axi}.
+\end{itemize}
+
+Rocket Chip-based designs been taped out onto silicon a total of 11 times in a variety of designs and CPUs, using silicon manufacturing processes from STMicroelectronics, Intel and TSMC. Two primary designs have been used: 28nm "Raven" chips, containing a 64-bit RISC-V
+vector microprocessor with on-chip switched-capacitor DC-DC converters and adaptive clocking; and also 45nm EOS chips, which feature a dual core 64-bit RISC-V processor \citep{rv2core}. The two designs were used for separate research projects, but shared Rocket Chip code. 
+
+Rocket Chip is also a major component of Chipyard: an integrated SoC design, simulation and verification framework designed for agile development of specialised hardware. It includes Rocket Chip, but also accelerators such as the Hwacha vector unit generator and various domain-specific generators for cryptography, digital signal processing, and machine learning\citep{chipyard}.
 
 \subsection{FPGAs}
 
-- a usual mcu would go to fabrication as an asic
-- use fpgas
--nexys A7 board
-- about fpgas
+Usually, a microcontroller design such as the one we intend to implement would be fabricated as an ASIC, so it can be integrated into board and other embedded systems. However, this is not an option for us as silicon fabrication is expensive and has to be done at scale. As such, we'll be targeting FPGAs (Field Programmable Gate Arrays) for implementation. FPGAs are semiconductors based around matrices of configurable logic devices connected via programmable interconnect networks, which allows a designed to configure the device to implement arbitrary hardware designs \citep{whatisfpga}. This also suits the experimental nature of our project well, as it allows us to iterate on hardware designs and perform testing with relative ease. Chisel can be compiled to verilog designed to map to FPGAs \cite{chisel}, making them ideal for our use.
+
+The hardware we have access to is a Xilinx Artix-7 100T on a Digilent Nexys A7 board \citep{digilent}, containing 15,850 programmable logic slices. Preliminary testing has determined that this is enough space to fit a single 64-bit Rocket Core, alongside other interface hardware.
 
 \section{Objectives}
 Our goal is to expand on the prior work of current hardware devices and use Chisel to build open source programmable I/O devices, integrated with Rocket RISC-V cores to create a complete microcontroller. Implementation will target FPGAs, as this allows for rapid prototyping and easy implementation and testing of hardware. The requirements for the I/O device are summarised below.
@@ -188,9 +205,9 @@ There are a few hardware and software resources we'll need access to for complet
         \hline
         \textbf{Resource}          & \textbf{Explanation}                                                            & \textbf{Notes}                                                                                                                                   \\ \hline
         FPGA development board     & Used as a synthesis target for the HDL, and for testing the I/O devices and SoC & I have a \href{https://digilent.com/reference/programmable-logic/nexys-a7/start}{Digilent Nexys A7 Board} on loan from the School of Engineering \\ \hline
-        Peripheral devices         & Used for testing a variety of interfaces and protocols with the  I/O devices    & I intend to purchase some sensors and LEDs that are designed to connect to the FPGA board                                                        \\ \hline
+        Peripheral devices         & Used for testing a variety of interfaces and protocols with the I/O devices    & I intend to purchase some sensors and LEDs that are designed to connect to the FPGA board                                                        \\ \hline
         Xilinx Vivado Design Suite & FPGA development toolchain and IDE needed for working with FPGA                 & The School of Engineering has an education license                                                                                               \\ \hline
-        Workstation PC             & Needed for running Vivado and connection to FPGA board                          & I have a sufficiently capable Linux workstation, and I also have access to DCS \& SoE computer labs.                                             \\ \hline
+        Workstation PC             & Needed for running Vivado and connection to FPGA board                          & I have a sufficiently capable Linux workstation, and also have access to DCS \& SoE computer labs.                                             \\ \hline
     \end{tabular}
     \caption{Project Resources}
     \label{tab:resources}
@@ -199,7 +216,7 @@ There are a few hardware and software resources we'll need access to for complet
 
 \section{Legal, Social, Ethical and Professional Issues}
 
-There are some legal issues to consider, as we are developing hardware similar to other commercial hardware. Care must be taken to ensure that the devices we develop are sufficiently distinct from existing implementations, as not to infringe upon the terms of any existing licenses or patents. However, I do not believe this will be a problem for two reasons: our implementation will likely be very rudimentary in comparison, and we do not intend to sell, manufacture, or otherwise profit off any of the outcomes of this project.
+There are some legal issues to consider, as we are developing hardware similar to other commercial hardware. Care must be taken to ensure that the devices we develop are sufficiently distinct from existing implementations, as not to infringe upon the terms of any existing licenses or patents. However, we do not believe this will be a problem for two reasons: our implementation will likely be very rudimentary in comparison, and we do not intend to sell, manufacture, or otherwise profit off any of the outcomes of this project.
 
 Other social, ethical and professional issues have been considered, and there is nothing else to note. As this project does not require working with people, no ethical consent is required.
 
