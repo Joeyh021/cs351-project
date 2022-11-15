@@ -35,16 +35,17 @@ The aim of this project is to develop state machine-based programmable I/O block
 
 \section{Background}
 
-embedded systems
+Embedded systems usually require hardware to receive input from and send output to the real world, and general-purpose microcontrollers include a variety of hardware buses for different purposes to enable interfacing with the widest possible variety of peripherals, meaning systems often end up including lots of hardware that is unused, or not having enough hardware of a specific kind. Furthermore, each separeate bus consumes space and power on a chip, and costs to design and manufacture, making microcontrollers larger and more power-hungry than they often need to be.
 
-pio
+Programmable I/O attempts to solve this by acting as a flexible hardware interface for embedded systems. PIO as implemented in the Raspberry Pi RP2040 contains programmable state machines which operate by shifting data to/from output pins. The devices are programmed using pioasm, a simple assembly-like DSL that define how data should be moved into/out of the device \cite{rp2040}. The intention of this project is to develop devices similar to these to tackle the problem of embedded I/O.
 
-chisel
+Through developing these devices I also intend to explore Chisel, a hardware description language embedded in Scala. Traditional HDLs such as Verilog and VHDL are old and unergonomic, having been designed for simulation (not synthesis), and lacking many features that are common in modern programming languages. Chisel takes advantage of the modern features and functional style of Scala, and existing JVM tooling and infrastructure to proide a much more ergonomic and flexible language and development process. Chisel compiles to Verilog, making it compatible with existing FPGA workflows and toolchains.
 
-objectives are given xxx
+Rocket Chip is an library of hardware components for generating RISC-V SoCs, and leverages Chisel to provide extensive parametrisation and flexibility. The customisability of Rocket Chip makes it an ideal candidate for experimentation, and it will be used to provide CPU cores for integrating with our custom I/O devices to build a full microcontroller.
+
 \section{Progress}
 
-As it stands, the state of the project is approximately 2 weeks behind the timeline as described in \hyperref[sec:timeline]{the original specification}. Some time has been spent learning CHISEL and Scala, and figuring out workflows to integrate CHISEL with traditional Xilinx FPGA worksflows and toolchains. Proof-of-concept I/O devices have been implemented using CHISEL, both standalone and integrated with Rocket Cores over AXI-lite buses.
+As it stands, the state of the project is approximately 2 weeks behind the timeline as described in Table \ref{tab:timeline} of the original specification. Some time has been spent learning Chisel and Scala, and figuring out workflows to integrate Chisel with traditional Xilinx FPGA workflows and toolchains. Proof-of-concept I/O devices have been implemented using Chisel, both standalone and integrated with Rocket Cores over AXI-lite buses.
 
 Work has not yet started on designing the intended I/O devices themselves, the position we had hoped to be in as of Week 6. This is due to having spent longer working with prototypes and getting to grips with tooling, and also having underestimated the amount of other coursework that has prevented work from taking place on the project. This is likely to remain the situation until the end of term when all other coursework has finished and progress can resume.
 
@@ -52,7 +53,7 @@ We do have plans to reduce the scope of the project if necessary: instead of spe
 
 \section{Updated Timeline}
 
-An updated timeline is provided in Table \ref{tab:timeline2} to reflect how we expect the rest of the project to progress. It starts from week 12, as this is the earliest point at which we expect to be able to resume work.
+An updated timeline is provided in Table \ref{tab:timeline2} to reflect how we expect the rest of the project to progress. It starts from Week 12, as this is the earliest point at which we expect to be able to resume work.
 
 \begin{table}[ht!]
 	\centering
@@ -75,11 +76,16 @@ Should the scope of the project need to be reduced as discussed above, The tasks
 
 \section{Project Management}
 
-So far, project management has been done to a good standard and progress has been carefully logged so far. We have created a Kanban board using GitHub Projects, and added each task from the timeline to it. Cards are categorised as "To Do", "In Progress", or "Done", with some also being under "Blocked" if they're waiting on completion of card, or deliberately put it to the side to do later. Extra cards are added ad-hoc if extra tasks come up.
+So far, besides the project falling behind timeline, project management has been good: tasks have been kept track of and progress so far logged. We have created a Kanban board using GitHub Projects, and added each task from the timeline to it. Cards are categorised as "To Do", "In Progress", or "Done", with some also being under "Blocked" if they're waiting on completion of card, or deliberately put it to the side to do later. Extra cards are added ad-hoc if extra tasks come up.
 
-Each card can be converted to an "Issue" on GitHub and associated with a repository, checklists and other commentory associated with how the progress of the task can be added. Resources used and Git commits and code associated with the progress or completion of the task can also be linked to.
+Each card can be converted to an "Issue" on GitHub and associated with a repository, checklists and other commentory associated with how the progress of the task can be added. Resources used and Git commits and code associated with the progress or completion of the task can also be linked to. Figure \ref{fig:kanban} shows the state of the Kanban board as of Week 7, and the live version can be found \href{https://github.com/users/Joeyh021/projects/2}{\textbf{at this link}}
 
-\href{https://github.com/users/Joeyh021/projects/2}{\textbf{ The Kanban board can be found at this link}}
+\begin{figure}[h!]
+	\centering
+	\includegraphics[width=\textwidth]{../img/kanban-wk6.png}
+	\caption{The Project Kanban Board}
+	\label{fig:kanban}
+\end{figure}
 
 \section{Legal, Social, Ethical and Professional Issues}
 
