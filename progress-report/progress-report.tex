@@ -28,11 +28,64 @@
 \pagestyle{plain}
 
 \section{Introduction}
+
+Traditionally, general-purpose microcontrollers necessitate the inclusion of a wide variety of hardware interfaces such as UART, SPI, and I2C to interface with a broad range of peripherals. Each of these interfaces has different hardware requirements, and is costly in development time, chip area, and system power. These interfaces are often emulated over general-purpose I/O interfaces using software techniques, but such techniques are usually inefficient and have poor performance.
+
+The aim of this project is to develop state machine-based programmable I/O blocks which are able to implement any communication protocol, which will then be integrated with open-source RISC-V cores to create a flexible and compact microcontroller.
+
 \section{Background}
+
+embedded systems
+
+pio
+
+chisel
+
+objectives are given xxx
 \section{Progress}
+
+As it stands, the state of the project is approximately 2 weeks behind the timeline as described in \hyperref[sec:timeline]{the original specification}. Some time has been spent learning CHISEL and Scala, and figuring out workflows to integrate CHISEL with traditional Xilinx FPGA worksflows and toolchains. Proof-of-concept I/O devices have been implemented using CHISEL, both standalone and integrated with Rocket Cores over AXI-lite buses.
+
+Work has not yet started on designing the intended I/O devices themselves, the position we had hoped to be in as of Week 6. This is due to having spent longer working with prototypes and getting to grips with tooling, and also having underestimated the amount of other coursework that has prevented work from taking place on the project. This is likely to remain the situation until the end of term when all other coursework has finished and progress can resume.
+
+We do have plans to reduce the scope of the project if necessary: instead of spending time integrating the devices with CPU cores, it can designed to work standalone without integrating with any other components on the FPGA. This removes the extra complexity introduced by communicating within an SoC over AXI buses or similar, and allows to focus solely on the design of the device.
+
 \section{Updated Timeline}
+
+An updated timeline is provided in Table \ref{tab:timeline2} to reflect how we expect the rest of the project to progress. It starts from week 12, as this is the earliest point at which we expect to be able to resume work.
+
+\begin{table}[ht!]
+	\centering
+	\begin{tabular}{|c|l|}
+		\hline
+		\textbf{Week(s)} & \textbf{Task}                                                       \\ \hline
+		12               & Lay out high-level block design                                     \\ \hline
+		13               & Extend proof of concept into project skeleton based on block design \\ \hline
+		14-19            & Write HDL code, implementing and testing one module at a time       \\ \hline
+		20               & Develop and run integration tests in simulation                     \\ \hline
+		21-22            & Use Rocket Chip to integrate device with RISC-V cores               \\ \hline
+		23-24            & Load microcontroller onto FPGA and run tests                        \\ \hline
+		25-31            & Write report                                                        \\ \hline
+	\end{tabular}
+	\caption{Updated Project Timeline}
+	\label{tab:timeline2}
+\end{table}
+
+Should the scope of the project need to be reduced as discussed above, The tasks for weeks 21-24 can be removed/reduced to give more time.
+
 \section{Project Management}
+
+So far, project management has been done to a good standard and progress has been carefully logged so far. We have created a Kanban board using GitHub Projects, and added each task from the timeline to it. Cards are categorised as "To Do", "In Progress", or "Done", with some also being under "Blocked" if they're waiting on completion of card, or deliberately put it to the side to do later. Extra cards are added ad-hoc if extra tasks come up.
+
+Each card can be converted to an "Issue" on GitHub and associated with a repository, checklists and other commentory associated with how the progress of the task can be added. Resources used and Git commits and code associated with the progress or completion of the task can also be linked to.
+
+\href{https://github.com/users/Joeyh021/projects/2}{\textbf{ The Kanban board can be found at this link}}
+
 \section{Legal, Social, Ethical and Professional Issues}
+
+As discussed in the original specification, there are some legal issues to consider, as we are developing hardware similar to other commercial hardware. Appropriate care has so far been taken to ensure that our devices are sufficiently distinct from said hardware, as not to infringe upon the revelant intellectual property laws.
+
+Other issues have continued to be considered and none more have come up in the course of the project so far.
 
 \appendix
 \section{Original Specification}
@@ -164,6 +217,7 @@ The secondary goal, once the HDL implementation is complete and all requirements
 \end{itemize}
 
 \subsection{Timeline}
+\label{sec:timeline}
 
 Table \ref{tab:timeline} gives a rough timeline for the project. Each of the tasks in the table is dependent upon the previous. There are a few notes of context for this:
 
