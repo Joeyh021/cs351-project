@@ -37,7 +37,7 @@ The aim of this project is to develop state machine-based programmable I/O block
 
 Embedded systems require hardware to receive input from and send output to the real world, and general-purpose microcontrollers include a variety of hardware buses for different purposes to enable interfacing with the widest possible variety of peripherals, meaning systems often end up including lots of hardware that is unused, or not having enough hardware of a specific kind. Furthermore, each bus consumes space and power on a chip, and costs to design and manufacture, making microcontrollers larger, more expensive, and less efficient than they often need to be.
 
-Programmable I/O attempts to solve this by acting as a flexible hardware interface for embedded systems. PIO as implemented in the Raspberry Pi RP2040 contains programmable state machines which operate by shifting data to/from output pins. The devices are programmed using pioasm, a simple assembly-like DSL that define how data should be moved into/out of the device \cite{rp2040}. The intention of this project is to develop devices similar to these to tackle the problem of embedded I/O. 
+Programmable I/O attempts to solve this by acting as a flexible hardware interface for embedded systems. PIO as implemented in the Raspberry Pi RP2040 contains programmable state machines which operate by shifting data to/from output pins. The devices are programmed using pioasm, a simple assembly-like DSL that define how data should be moved into/out of the device \cite{rp2040}. The intention of this project is to develop devices similar to these to tackle the problem of embedded I/O.
 
 Through developing these devices I also intend to explore Chisel, a hardware description language embedded in Scala. Traditional HDLs such as Verilog and VHDL are old and unergonomic, having been originally designed for simulation (not synthesis), and lacking many features that are common in modern programming languages. Chisel takes advantage of the modern features and functional style of Scala, and existing JVM tooling and infrastructure to proide a much more ergonomic and flexible language and development process. Chisel compiles to Verilog, making it compatible with existing FPGA workflows and toolchains.
 
@@ -53,7 +53,7 @@ We do have plans to reduce the scope of the project if necessary: instead of spe
 
 \section{Updated Timeline}
 
-An updated timeline is provided in Table \ref{tab:timeline2} to reflect how we expect the rest of the project to progress. It starts from Week 12, as this is the earliest point at which we expect to be able to resume work.
+An updated timeline is provided in Table \ref{tab:timeline2} to reflect how we expect the rest of the project to progress. It starts from Week 12, as this is the earliest point at which we expect to be able to resume work. Should the scope of the project need to be reduced as discussed above, The tasks for weeks 21-24 can be removed/reduced to give more time.
 
 \begin{table}[ht!]
 	\centering
@@ -72,7 +72,13 @@ An updated timeline is provided in Table \ref{tab:timeline2} to reflect how we e
 	\label{tab:timeline2}
 \end{table}
 
-Should the scope of the project need to be reduced as discussed above, The tasks for weeks 21-24 can be removed/reduced to give more time.
+Designing the system on a high level first provides two advantages: the design will be very thoroughly documented, and it will also be easy to begin implementation as I will have a strong starting point. Also, as I am basing my design heavily on the RP2040, I can draw upon diagrams such as Figures \ref{fig:pio-block} and \ref{fig:pio-sm} to inform the design.
+
+I will then expand the block design out into a project skeleton in Chisel, creating stub modules for each component and laying out a project structure in code. During this stage, I also intend to define the ports for each module and the interfaces/connections between modules.
+
+Once the block design and project skeleton are down, I intend to implement modules starting with the simpler ones such as clock dividers and FIFOs, before moving on to more complex bits such as pin mapping, instruction decoders and execution engines.
+
+This approach would allow someone else to pick up the project should I not finish it, as it would be well documented and there would be a well-defined starting point within the project codebase. If time permits, I would also like to write my own pioasm assembler, as this would help me gain a richer understanding of how the system works.
 
 \section{Project Management}
 
