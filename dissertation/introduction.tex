@@ -1,18 +1,12 @@
 \chapter{Introduction}
 \label{ch:introduction}
 
-Write around four paragraphs establishing the context and motivating your project.
+The primary purpose of an embedded system is to provide computing functions within the context of a larger electromechanical system, and as such, embedded system design usually starts with interface and I/O requirements. Microcontroller units (MCUs) have to be able to interface with he world around them via sensors, actuators, LEDs, etc, but communicating with external hardware can be difficult due to the need for high frequencies and precision timing, especially as high-speed serial interfaces become more common.
 
-\section{Related work}
+General-purpose interfaces such as UART, SPI, and I\textsuperscript{2}C are commonly found in microcontrollers and facilitate communication with a broad range of common electronic devices via standard protocols. However, different interfaces have different requirements which necessitates the inclusion of dedicated fixed-function hardware for each communication protocol a system wishes to support. Each hardware interface adds cost and complexity to development, as well as the cost in system power consumption and chip area. General-purpose microcontrollers typically include a variety of hardware to be as flexible as possible, which almost always results in unnecessary expense as it is rare that a MCU's full complement of I/O hardware is in use for any given use case. It is also sometimes the case that there is not enough of a single type of interface within a system, ie you have 2 SPI and 2 UART ports but you need 4 UARTs, which can leave designers in a difficult position.
 
-Discuss related work.
+There are alternatives to fixed-function I/O hardware. Using software to control interface signalling over general-purpose I/O (GPIO) pins is common, a technique known as 'bit-banging', but this is rarely suitable as CPUs cannot always meet the timing requirements necessary for high-speed serial I/O, and software-controlled signals can be subject to high levels of jitter. FPGAs provide programmable hardware that can be reconfigured to implement whatever hardware a designer wishes, but these are very expensive in the context of low-cost embedded devices, and designs can be expensive to implement and verify due to the unique programming model presented by hardware description languages.
 
-\section{Objectives}
+The solution we present is explore is programmable I/O, or PIO. First introduced by Raspberry Pi with the RP2040, PIO devices are fixed-function hardware that are programmable in the same sense as a CPU via a small assembly language (pioasm). Instructions are executed sequentially by the PIO to control signalling and transfer data between the PIO block, external hardware and the rest of the system. PIO is highly performant, able to control signalling at a much higher speed than the CPU due to it's specialised nature. Highly configurable system behaviour and flexible mapping of inputs and outputs to GPIO pins make PIO flexible enough to implement most common I/O protocols, as well as any other custom or uncommon standards.
 
-One sentence summary of your project. Followed by a short list of concrete objectives:
-
-\begin{itemize}
-    \item Objective 1
-    \item Objective 2
-    \item Objective 3
-\end{itemize}
+Our PIO implementation is based on that of the RP2040, and is integrated with open-source RISC-V cores to create a proof-of-concept low-power, low-cost, flexible microcontroller that can be used in embedded applications which require custom or flexible I/O, in addition to all the typical use-cases.

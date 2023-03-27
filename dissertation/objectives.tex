@@ -1,0 +1,37 @@
+\chapter{Objectives}
+\label{ch:objectives}
+
+
+Our goal is to expand on the prior work of current hardware devices and
+use Chisel to build open source programmable I/O devices, integrated with
+Rocket RISC-V cores to create a complete microcontroller. Implementation will
+target FPGAs, as this allows for rapid prototyping and easy implementation
+and testing of hardware. The requirements for the I/O device are summarised
+below.
+• The device should be implemented using Chisel
+• The device should have a small instruction memory for holding programs
+• The device should be programmable using a simple DSL
+• The device should execute instructions from it’s memory in a standard
+fetch-decode-execute fashion
+• Instructions should execute within a single cycle
+• Instructions should either push data to the output pins, or shift data in
+from the pins
+• The device should contain an interface for streaming data to/from a host
+device or external memory
+8
+• The device should be able to flexibly map inputs and outputs to external
+GPIO pins on the FPGA
+The secondary goal, once the HDL implementation is complete and all require-
+ments above are fulfilled, is to build a microcontroller integrating the devices
+using Rocket Chip. The requirements for this are summarised below.
+• The microcontroller should contain at least one CPU core, programmable
+using the RISC-V ISA
+• The microcontroller should be capable of executing instructions inde-
+pendently from the device
+• The microcontroller should connect to the device over some bus, and be
+able to share data via a common memory or some other bus communic-
+ation protocol
+• The microcontroller should be capable of acting as a host for the devices,
+controlling initialisation and handling interrupts
+• The microcontroller should be compact and efficient, using as little FPGA
+resources and power as possible
