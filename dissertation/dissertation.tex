@@ -1,4 +1,4 @@
-\documentclass[a4paper,fleqn,twoside,12pt]{report}
+\documentclass[a4paper,fleqn,12pt]{report}
 
 %%%%%%%%%%%%%%%%%%%%
 
@@ -15,10 +15,8 @@
 \makeatletter
 \fancypagestyle{plain}{
 	\fancyhf{}
-	\fancyhead[LE]{\thepage}
-	\fancyhead[RE]{\textit{\@author}}
-	\fancyhead[RO]{\thepage}
-	\fancyhead[LO]{\textit{\@title}}
+	\fancyfoot[C]{\thepage}
+	\fancyhead[L]{\textit{\@title}}
 }
 \makeatother
 
@@ -39,6 +37,7 @@
 \input{design.tex}
 \input{implementation.tex}
 \input{evaluation.tex}
+\input{projman.tex}
 \input{conclusions.tex}
 
 \bibliographystyle{../common/plainnat}
