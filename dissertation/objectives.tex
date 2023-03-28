@@ -1,37 +1,28 @@
 \chapter{Objectives}
 \label{ch:objectives}
 
+We draw on the prior work of existing hardware, and use Chisel to build an open-source programmable I/O device. PIO as included in the RP2040 and described in chapter \ref{ch:background} is used as the primary inspiration and also reference implementation for the project. 
 
-Our goal is to expand on the prior work of current hardware devices and
-use Chisel to build open source programmable I/O devices, integrated with
-Rocket RISC-V cores to create a complete microcontroller. Implementation will
-target FPGAs, as this allows for rapid prototyping and easy implementation
-and testing of hardware. The requirements for the I/O device are summarised
-below.
-• The device should be implemented using Chisel
-• The device should have a small instruction memory for holding programs
-• The device should be programmable using a simple DSL
-• The device should execute instructions from it’s memory in a standard
-fetch-decode-execute fashion
-• Instructions should execute within a single cycle
-• Instructions should either push data to the output pins, or shift data in
-from the pins
-• The device should contain an interface for streaming data to/from a host
-device or external memory
-8
-• The device should be able to flexibly map inputs and outputs to external
-GPIO pins on the FPGA
-The secondary goal, once the HDL implementation is complete and all require-
-ments above are fulfilled, is to build a microcontroller integrating the devices
-using Rocket Chip. The requirements for this are summarised below.
-• The microcontroller should contain at least one CPU core, programmable
-using the RISC-V ISA
-• The microcontroller should be capable of executing instructions inde-
-pendently from the device
-• The microcontroller should connect to the device over some bus, and be
-able to share data via a common memory or some other bus communic-
-ation protocol
-• The microcontroller should be capable of acting as a host for the devices,
-controlling initialisation and handling interrupts
-• The microcontroller should be compact and efficient, using as little FPGA
-resources and power as possible
+The requirements for the PIO device are outlined below. Requirements are categorised using the keywords \textbf{must}, \textbf{should}, \textbf{could}, to indicate priority.
+
+\begin{itemize}
+    \item \textit{\textbf{MUST}} be implemented using Chisel as the primary hardware description language
+    \item \textit{\textbf{MUST}} be programmable using a small DSL
+    \item \textit{\textbf{MUST}} be capable of receiving data from input GPIO pins and outputting data to output GPIO pins
+    \item \textit{\textbf{SHOULD}} be configurable via a set of control registers accessible from the host system
+    \item \textit{\textbf{SHOULD}} contain an interface for streaming data to/from the host system or external memory
+    \item \textit{\textbf{SHOULD}} be able to flexible map inputs and outputs to physical device pins
+    \item \textit{\textbf{COULD}} be able to run PIO programs originally written for the RP2040
+\end{itemize}
+
+Once implementation and verification of the PIO device itself is complete, meeting most or all of the above requirements, it \textit{\textbf{SHOULD}} then be integrated with RISC-V cores using Rocket Chip to create a microcontroller system. The requirements for such system are outlined below in the same fashion.
+
+\begin{itemize}
+    \item \textit{\textbf{MUST}} contain at least one CPU core, programmable using the RISC-V instruction set
+    \item \textit{\textbf{MUST}} act as a host for the PIO device, controlling initialisation and configuration
+    \item \textit{\textbf{SHOULD}} be able to stream input/output data from/to the PIO device
+    \item \textit{\textbf{SHOULD}} allow for the PIO device to run independently of any other processing cores
+    \item \textit{\textbf{COULD}} be compact and efficient, utilising as little FPGA resources and power as possible
+\end{itemize}
+
+All implementation work targets FPGAs, specifically Xilinx Artix 7 devices as included on the Digilent Nexys A7-100T boards provided by the School of Engineering. This provides us with an ideal platform for rapid prototyping and testing that we area already familiar with. An actual device of this nature would usually be fabricated as an ASIC, but this is expensive, unnecessary, and would require extra work well beyond the scope of this project. An FPGA is a suitable target for an early stage proof of concept such as ours.
