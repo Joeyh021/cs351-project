@@ -2,3 +2,20 @@
 \label{ch:design}
 
 In this chapter, we describe the overall design of our solution to the problem identified in \Cref{ch:introduction}, building on work described in \Cref{ch:background}.
+\begin{table}[]
+    \begin{tabular}{|l|l|l|l|lllll|l|l|l|l|l|l|l|l|}
+        \hline
+        \textbf{Bit:} & 15 & 14 & 13 & \multicolumn{1}{l|}{12} & \multicolumn{1}{l|}{11} & \multicolumn{1}{l|}{10} & \multicolumn{1}{l|}{9} & 8         & 7         & 6         & 5         & 4         & 3         & 2         & 1         & 0         \\ \hline
+        \textbf{JMP}  & 0  & 0  & 0  & Delay/side-set          &                         &                         &                        &           &           &           &           &           &           &           &           &           \\ \hline
+        \textbf{WAIT} & 0  & 0  & 1  & Delay/side-set          &                         & \textbf{}               & \textbf{}              & \textbf{} & \textbf{} & \textbf{} & \textbf{} & \textbf{} & \textbf{} & \textbf{} & \textbf{} & \textbf{} \\ \hline
+        \textbf{IN}   & 0  & 1  & 0  & Delay/side-set          &                         &                         &                        &           &           &           &           &           &           &           &           &           \\ \hline
+        \textbf{OUT}  & 0  & 1  & 1  & Delay/side-set          &                         &                         &                        &           &           &           &           &           &           &           &           &           \\ \hline
+        \textbf{PUSH} & 1  & 0  & 0  & Delay/side-set          &                         &                         &                        &           &           &           &           &           &           &           &           &           \\ \hline
+        \textbf{PULL} & 1  & 0  & 0  & Delay/side-set          &                         &                         &                        &           &           &           &           &           &           &           &           &           \\ \hline
+        \textbf{MOV}  & 1  & 0  & 1  & Delay/side-set          &                         &                         &                        &           &           &           &           &           &           &           &           &           \\ \hline
+        \textbf{IRQ}  & 1  & 1  & 0  & Delay/side-set          &                         &                         &                        &           &           &           &           &           &           &           &           &           \\ \hline
+        \textbf{SET}  & 1  & 1  & 1  & Delay/side-set          &                         &                         &                        &           &           &           &           &           &           &           &           &           \\ \hline
+    \end{tabular}
+    \caption{The PIO assembly language}
+    \label{tab:pioasm}
+\end{table}

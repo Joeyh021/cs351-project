@@ -1,7 +1,7 @@
 \chapter{Objectives}
 \label{ch:objectives}
 
-We draw on the prior work of existing hardware, and use Chisel to build an open-source programmable I/O device. PIO as included in the RP2040 and described in chapter \ref{ch:background} is used as the primary inspiration and also reference implementation for the project. 
+We draw on the prior work of existing hardware, and use Chisel to build an open-source programmable I/O device. PIO as included in the RP2040 and described in chapter \ref{ch:background} is used as the primary inspiration and also reference implementation for the project.
 
 The requirements for the PIO device are outlined below. Requirements are categorised using the keywords \textbf{must}, \textbf{should}, \textbf{could}, to indicate priority.
 
@@ -24,5 +24,7 @@ Once implementation and verification of the PIO device itself is complete, meeti
     \item \textit{\textbf{SHOULD}} allow for the PIO device to run independently of any other processing cores
     \item \textit{\textbf{COULD}} be compact and efficient, utilising as little FPGA resources and power as possible
 \end{itemize}
+
+As a third objective, we also evaluate the use of Chisel for building complex hardware devices.
 
 All implementation work targets FPGAs, specifically Xilinx Artix 7 devices as included on the Digilent Nexys A7-100T boards provided by the School of Engineering. This provides us with an ideal platform for rapid prototyping and testing that we area already familiar with. An actual device of this nature would usually be fabricated as an ASIC, but this is expensive, unnecessary, and would require extra work well beyond the scope of this project. An FPGA is a suitable target for an early stage proof of concept such as ours.
