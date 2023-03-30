@@ -61,11 +61,25 @@ jmp again        ; Set PC to label `again`
 Listing \ref{lst:sqwave} uses only 2 of the 9 instructions: \mintinline{text}|set| to drive GPIO pins, and \mintinline{text}|jmp| to implement a loop. More details on pioasm is given in Chapter \ref{ch:design} as part of our design discussion.
 
 \section{I/O Coprocessors}
-the idea of a coprocessor for I/O is not a new thing, specifically we draw on two prior works.
-\subsection{Motorola Time Processor Unit}
-Older one,
+The idea of offloading I/O to a coprocessor is not novel. We explore two other devices which include subsystems that are designed for I/O.
+\subsection{Time Processor Unit}
+
+The Time Processor Unit (TPU) is a coprocessing subsystem found in some older Motorola microcontrollers \cite{tpu}, built upon by the Enhanced TPU (eTPU) in NXP Semiconductor's MCF523x family of microcontrollers build on the ColdFire architecture \cite{mfcdatasheet}.
+
+The eTPU is a real-time microprocessed system, designed to run microengine code on a built-in RISC processor to respond to events triggered by either internal timers, interrupts, or I/O transitions. Each eTPU engine consists of 32 channels, each with an input and output, and containing logic to listen for up to 4 events. Channels can be independently configured to perform functions such as output generation, input capture, or a combination of the two.
+
+Communication between the eTPU and host CPU happens via a shared RAM, which can be used for data transfer between the two, and as storage for eTPU microcode programs. The CPU configures the eTPU by writing to the relevant configuration registers within the system's address space, and can configure each channel mode and priority independently \cite{etpu}.
+
+The event-driven architecture differs from that of the RP2040's PIO, in that timing is decoupled from the microcode execution: code is executed in response to an event, rather than the timing being built in to the execution of the code. However, the guarantees provided by the hardware around event response latency and the nature of microcode execution within the TPU means it can meet the timing requirements necessary for interfaces such as UART.
+
 \subsection{ESP-32 Ultra Low Power Coprocessor}
-these are a thing that can do xyz
+
+The ESP-32 contains an ultra-low power coprocessor (ULP) that can remain powered on when the rest of the SoC is in deep sleep mode. The ULP is a finite state machine can execute a program from it's own memory that is capable of accessing peripheral devices and internal sensors, and communicating via I\textsuperscript{2}C. It can wake the CPU and send interrupts to the host system, as well as control it's own sleep state. It can communicate with the rest of the SoC via a shared memory that can be read/written by the ULP while the rest of the SoC is in deep sleep. It can be started directly by software on the host system, or by a hardware timer triggered periodically.
+
+Unlike PIO and the eTPU, the ULP is not designed to implement arbitrary I/O protocols, instead acting as a co-processor that has access to only I\textsuperscript{2}C, ADC and GPIO interface hardware. Instead, it's purpose is to offload I/O functions from the CPU to save power. Given the ESP32 positioning itself as an IoT microcontroller, this makes sense, as IoT devices often want to consume as little power as possible.
+
+Despite this, the idea of an I/O-focused coprocessor designed to operate in ultra-low power states is powerful. IoT devices often operate on tightly contstrained power budgets, and as battery-powered embedded systems become more prevalent in applications such as wearables and wireless devices, the need for I/O at low power is evident.
+
 \section{RISC-V}
 - introduce RISC-V, how it came about and it's purpose
 - how is it used in microcontrollers (esp-32 again)
