@@ -1,6 +1,8 @@
 \chapter{Background \& Related Work}
 \label{ch:background}
 
+In this section we introduce the background necessary to understand the context of the project, and explore some related works which we utilise and build upon.
+
 \section{Interfaces in Embedded Systems}
 
 Interfacing between digital components is hard due to high speed and precision timing requirements, and is a problem continually explored by electronics engineers.
@@ -76,15 +78,25 @@ The event-driven architecture differs from that of the RP2040's PIO, in that tim
 
 The ESP-32 contains an ultra-low power coprocessor (ULP) that can remain powered on when the rest of the SoC is in deep sleep mode. The ULP is a finite state machine can execute a program from it's own memory that is capable of accessing peripheral devices and internal sensors, and communicating via I\textsuperscript{2}C. It can wake the CPU and send interrupts to the host system, as well as control it's own sleep state. It can communicate with the rest of the SoC via a shared memory that can be read/written by the ULP while the rest of the SoC is in deep sleep. It can be started directly by software on the host system, or by a hardware timer triggered periodically.
 
-Unlike PIO and the eTPU, the ULP is not designed to implement arbitrary I/O protocols, instead acting as a co-processor that has access to only I\textsuperscript{2}C, ADC and GPIO interface hardware. Instead, it's purpose is to offload I/O functions from the CPU to save power. Given the ESP32 positioning itself as an IoT microcontroller, this makes sense, as IoT devices often want to consume as little power as possible.
+Unlike PIO and the eTPU, the ULP is not designed to implement arbitrary I/O protocols, instead acting as a co-processor that has access to only I\textsuperscript{2}C, ADC and GPIO interface hardware. Instead, it's purpose is to offload I/O functions from the CPU to save power. Given the ESP32 positioning itself as an IoT microcontroller, this makes sense, as IoT devices often want to consume as little power as possible.\cite{esp32}
 
 Despite this, the idea of an I/O-focused coprocessor designed to operate in ultra-low power states is powerful. IoT devices often operate on tightly contstrained power budgets, and as battery-powered embedded systems become more prevalent in applications such as wearables and wireless devices, the need for I/O at low power is evident.
 
 \section{RISC-V}
-- introduce RISC-V, how it came about and it's purpose
-- how is it used in microcontrollers (esp-32 again)
+
+RISC-V is an open standard instruction set architecture. Originally developed at the University of California, Berkely to support computer architecture research and education, it has grown into an industry standard and is being used in commercial devices. RISC-V was designed explicitly to be an open standard ISA, but also to be `a \textit{real} ISA'\cite{riscv_design}, such that it would be suitable for hardware implementation in an FPGA or ASIC. It was also designed to be highly flexible and extensible, a factor showcased by it's many extension standards \cite{riscv_spec}.
+
+supported in software tools like linux
+
+commercial devices like sifive and other examples
+
+It is for these reasons we explore RISC-V for this project: it's open source nature means it is free for us to use and experiment with, and many well-supported open source implementations are available. It's flexibility also means it is possible to easily and closely integrate external peripherals.
+
 
 \subsection{Rocket Chip}
+
+Rocket Chip is one such implementation.
+
 - open course RISC-V SoC generator framework
 - has been taped out before
 - what does it include
@@ -96,6 +108,10 @@ leverages it to provide parametriseability and flexibility
 - issues with current HDLs
 - how Chisel fixes these
 - also provides Firrtl and chiseltest and treadle
+
+\section{Rust for Embedded Systems}
+
+
 
 \section{FPGAs}
 FPGAs are an implementation detail of this project and are introduced as such.
