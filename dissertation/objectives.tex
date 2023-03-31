@@ -7,7 +7,7 @@ The requirements for the PIO device are outlined below. Requirements are categor
 
 \begin{itemize}
     \item \textit{\textbf{MUST}} be implemented using Chisel as the primary hardware description language
-    \item \textit{\textbf{MUST}} be programmable using a small DSL
+    \item \textit{\textbf{MUST}} be programmable using a small domain specific language (DSL)
     \item \textit{\textbf{MUST}} be capable of receiving data from input GPIO pins and outputting data to output GPIO pins
     \item \textit{\textbf{SHOULD}} be configurable via a set of control registers accessible from the host system
     \item \textit{\textbf{SHOULD}} contain an interface for streaming data to/from the host system or external memory
@@ -29,4 +29,4 @@ Once implementation and verification of the PIO device itself is complete, meeti
 
 As a third objective, we also evaluate the use of Chisel for building complex hardware devices.
 
-All implementation work targets FPGAs, specifically Xilinx Artix 7 devices as included on the Digilent Nexys A7-100T boards provided by the School of Engineering. This provides us with an ideal platform for rapid prototyping and testing that we area already familiar with. An actual device of this nature would usually be fabricated as an ASIC, but this is expensive, unnecessary, and would require extra work well beyond the scope of this project. An FPGA is a suitable target for an early stage proof of concept such as ours.
+All implementation work targets FPGAs, specifically Xilinx Artix 7 devices as included on the Digilent Nexys A7-100T boards provided by the School of Engineering. This provides us with an ideal platform for rapid prototyping and testing that we are already familiar with.
