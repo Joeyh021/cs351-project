@@ -1,27 +1,104 @@
 \chapter{Design}
 \label{ch:design}
 
-\section{pioasm}
-In this chapter, we describe the overall design of our solution to the problem identified in \Cref{ch:introduction}, building on work described in \Cref{ch:background}.
-\begin{table}[]
-    \begin{tabular}{|l|l|l|l|lllll|l|l|l|l|l|l|l|l|}
+In this chapter, we describe the overall design of our PIO device, and how we plan to integrate it into a RISC-V SoC.
+
+\section{PIO Assembly}
+
+The design of the PIO starts with the assembly language which it executes. We re-use parts of the assembly language from the RP2040 PIO, as described in section 3.3 of the RP2040 Datasheet and shown in table \ref{tab:pioasm}. There are 9 instructions, each 16 bits long. The upper 3 bits are the opcode, and bits 12-8 encode a delay, an optional number of cycles to wait before executing the next instruction, and/or side set, a value encoded directly into the instruction to write out to pre-configured pins. The rest of the instructions differ, encoding different flags and data. We omit the full description of the original PIO instruction set for brevity, instead referring to the datasheet \cite{rp2040}.
+
+% \begin{itemize}
+%     \item Jump sets the program counter to a given address if the condition is true
+%           \begin{itemize}
+%               \item Can be unconditional, or do a check against a pin value or a scratch register
+%           \end{itemize}
+%     \item Wait pauses execution until a condition is met
+%           \begin{itemize}
+%               \item The polarity flag defines whether to wait for a 1 or a 0
+%               \item The source flag defines wether to wait for a pin or on an interrupt
+%           \end{itemize}
+%     \item In shifts a given number of bits from a source into the input shift register
+%           \begin{itemize}
+%               \item The source can be pins, the other shift register, or a scratch register
+%           \end{itemize}
+%     \item Out shifts a given number of bits out of the output shift register to a destination
+%           \begin{itemize}
+%               \item The source can be pins, the other shift register, or a scratch register
+%               \item Data can also be shifted to the program counter to cause a jump, or data can be shifted out to execute OSR data as an instruction
+%           \end{itemize}
+%     \item Push pushes the contents of the output shift register into the RX FIFO as a single 32-bit word
+%           \begin{itemize}
+%               \item The source can be pins, the other shift register, or a scratch register
+%               \item Data can also be shifted to the program counter to cause a jump, or data can be shifted out to execute OSR data as an instruction
+%           \end{itemize}
+% \end{itemize}
+
+\begin{table}[h!]
+    \begin{tabular}{|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|}
         \hline
-        \textbf{Bit:} & 15 & 14 & 13 & \multicolumn{1}{l|}{12} & \multicolumn{1}{l|}{11} & \multicolumn{1}{l|}{10} & \multicolumn{1}{l|}{9} & 8         & 7         & 6         & 5         & 4         & 3         & 2         & 1         & 0         \\ \hline
-        \textbf{JMP}  & 0  & 0  & 0  & Delay/side-set          &                         &                         &                        &           &           &           &           &           &           &           &           &           \\ \hline
-        \textbf{WAIT} & 0  & 0  & 1  & Delay/side-set          &                         & \textbf{}               & \textbf{}              & \textbf{} & \textbf{} & \textbf{} & \textbf{} & \textbf{} & \textbf{} & \textbf{} & \textbf{} & \textbf{} \\ \hline
-        \textbf{IN}   & 0  & 1  & 0  & Delay/side-set          &                         &                         &                        &           &           &           &           &           &           &           &           &           \\ \hline
-        \textbf{OUT}  & 0  & 1  & 1  & Delay/side-set          &                         &                         &                        &           &           &           &           &           &           &           &           &           \\ \hline
-        \textbf{PUSH} & 1  & 0  & 0  & Delay/side-set          &                         &                         &                        &           &           &           &           &           &           &           &           &           \\ \hline
-        \textbf{PULL} & 1  & 0  & 0  & Delay/side-set          &                         &                         &                        &           &           &           &           &           &           &           &           &           \\ \hline
-        \textbf{MOV}  & 1  & 0  & 1  & Delay/side-set          &                         &                         &                        &           &           &           &           &           &           &           &           &           \\ \hline
-        \textbf{IRQ}  & 1  & 1  & 0  & Delay/side-set          &                         &                         &                        &           &           &           &           &           &           &           &           &           \\ \hline
-        \textbf{SET}  & 1  & 1  & 1  & Delay/side-set          &                         &                         &                        &           &           &           &           &           &           &           &           &           \\ \hline
+        \textbf{Bit:} & 15 & 14 & 13 & 12                                  & 11                               & 10                             & 9                           & 8                          & 7 & 6 & 5 & 4 & 3 & 2 & 1 & 0 \\ \hline
+        \textbf{JMP}  & 0  & 0  & 0  & \multicolumn{5}{c|}{Delay/side-set} & \multicolumn{3}{c|}{Condition}   & \multicolumn{5}{c|}{Address}                                                                                              \\ \hline
+        \textbf{WAIT} & 0  & 0  & 1  & \multicolumn{5}{c|}{Delay/side-set} & Pol                              & \multicolumn{2}{c|}{Source}    & \multicolumn{5}{c|}{Index}                                                               \\ \hline
+        \textbf{IN}   & 0  & 1  & 0  & \multicolumn{5}{c|}{Delay/side-set} & \multicolumn{3}{c|}{Source}      & \multicolumn{5}{c|}{Bit count}                                                                                            \\ \hline
+        \textbf{OUT}  & 0  & 1  & 1  & \multicolumn{5}{c|}{Delay/side-set} & \multicolumn{3}{c|}{Destination} & \multicolumn{5}{c|}{Bit count}                                                                                            \\ \hline
+        \textbf{PUSH} & 1  & 0  & 0  & \multicolumn{5}{c|}{Delay/side-set} & 0                                & IfE                            & Blk                         & 0                          & 0 & 0 & 0 & 0                 \\ \hline
+        \textbf{PULL} & 1  & 0  & 0  & \multicolumn{5}{c|}{Delay/side-set} & 1                                & IfE                            & Blk                         & 0                          & 0 & 0 & 0 & 0                 \\ \hline
+        \textbf{MOV}  & 1  & 0  & 1  & \multicolumn{5}{c|}{Delay/side-set} & \multicolumn{3}{c|}{Destination} & \multicolumn{2}{c|}{Op}        & \multicolumn{3}{c|}{Source}                                                              \\ \hline
+        \textbf{IRQ}  & 1  & 1  & 0  & \multicolumn{5}{c|}{Delay/side-set} & 0                                & Clr                            & Wait                        & \multicolumn{5}{c|}{Index}                                 \\ \hline
+        \textbf{SET}  & 1  & 1  & 1  & \multicolumn{5}{c|}{Delay/side-set} & \multicolumn{3}{c|}{Destination} & \multicolumn{5}{c|}{Data}                                                                                                 \\ \hline
     \end{tabular}
-    \caption{The PIO assembly language}
+    \caption{The RP2040 PIO assembly language \cite{rp2040}}
     \label{tab:pioasm}
 \end{table}
 
-\section{block design}
+Our version of pioasm is much simplified from this: the number of instructions is reduced from 9 to 8, some of the flags are removed, and much of the functionality that is configurable via registers is fixed. These restrictions are necessary to simplify the design such that it can be implemented within a realistic timeframe. Our PIO instruction set, referred to as RVPIO (RISC-V PIO) from here on, is given in table \ref{tab:rvpioasm}, and details of the changes between the two are given below.
+
+\begin{itemize}
+    \item The IRQ instruction is removed. This is to simplify integration of the PIO into the SoC, handling interrupts in either direction is a very involved process on both the hardware and software level and is left out of scope for this project.
+    \item Bit 12 is always side-set, and only 1 pin may be set/cleared using this. The side-set pin is fixed in the hardware.
+    \item The WAIT instruction can only wait on an input pin changing state, instead of being configurable to wait on an IRQ instead. The exact pin that is waited on is configurable via a control register.
+    \item IN and OUT instructions are reduced in the sources/destinations they can shift from/to. They may only shift to/from a scratch register or pins. The OUT instruction can not shift to the program counter or execute OSR data as an instruction.
+    \item PUSH and PULL instructions do not have the block (Blk) flag, instead behaving as if this flag was always set, which is to stall execution if the FIFO is full/empty.
+    \item MOV is restricted in it's capabilities. The original optionally could invert or reverse the bits of a word, which is not implemented in RVPIO. The sources/destinations are also restricted: it cannot read from status registers, and it cannot write to the program counter or execute data as an instruction.
+\end{itemize}
+
+\begin{table}[h!]
+    \begin{tabular}{|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|}
+        \hline
+        \textbf{Bit:} & 15 & 14 & 13 & 12   & 11                         & 10                               & 9                              & 8 & 7                               & 6 & 5 & 4 & 3 & 2 & 1 & 0 \\ \hline
+        \textbf{JMP}  & 0  & 0  & 0  & S.S. & \multicolumn{4}{c|}{Delay} & \multicolumn{3}{c|}{Condition}   & \multicolumn{5}{c|}{Address}                                                                     \\ \hline
+        \textbf{WAIT} & 0  & 0  & 1  & S.S. & \multicolumn{4}{c|}{Delay} & Pol                              & 0                              & 0 & \multicolumn{5}{c|}{Pin Select}                             \\ \hline
+        \textbf{IN}   & 0  & 1  & 0  & S.S. & \multicolumn{4}{c|}{Delay} & \multicolumn{3}{c|}{Source}      & \multicolumn{5}{c|}{Bit count}                                                                   \\ \hline
+        \textbf{OUT}  & 0  & 1  & 1  & S.S. & \multicolumn{4}{c|}{Delay} & \multicolumn{3}{c|}{Destination} & \multicolumn{5}{c|}{Bit count}                                                                   \\ \hline
+        \textbf{PUSH} & 1  & 0  & 0  & S.S. & \multicolumn{4}{c|}{Delay} & 0                                & IfE                            & 0 & 0                               & 0 & 0 & 0 & 0             \\ \hline
+        \textbf{PULL} & 1  & 0  & 0  & S.S. & \multicolumn{4}{c|}{Delay} & 1                                & IfE                            & 0 & 0                               & 0 & 0 & 0 & 0             \\ \hline
+        \textbf{MOV}  & 1  & 0  & 1  & S.S. & \multicolumn{4}{c|}{Delay} & \multicolumn{3}{c|}{Destination} & 0                              & 0 & \multicolumn{3}{c|}{Source}                                 \\ \hline
+        \textbf{SET}  & 1  & 1  & 1  & S.S. & \multicolumn{4}{c|}{Delay} & \multicolumn{3}{c|}{Destination} & \multicolumn{5}{c|}{Data}                                                                        \\ \hline
+    \end{tabular}
+    \caption{Our RVPIO assembly language \cite{rp2040}}
+    \label{tab:rvpioasm}
+\end{table}
+
+The assembly language informs most
+
+
+
+\section{Functional Details}
+There are some other details of the PIO's design which must be clarified before we can move to implementation. Again, most of these details are drawn from the RP2040 datasheet
+
+Side-set is already described
+
+Stalling
+
+Autowrap
+
+Clock divider
+
+Pin Mapping config
+
+\section{Block Design}
+
+
 
 \section{HDL skeleton}
 
