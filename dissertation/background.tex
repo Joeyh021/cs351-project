@@ -12,7 +12,7 @@ In consumer electronics the USB interface is very common, and devices include ha
 
 Microcontrollers and embedded systems are a similar story, except you're less likely to find a SATA interface on an MCU: interfaces such as SPI, UART, I\textsuperscript{2}C, PWM and CAN are more common, along with GPIO pins. These interfaces are more general-purpose, and designed for use with other electronic components rather than consumer hardware. They're also are a lot simpler than the likes of PCIe, and easy to implement into a small microcontroller fairly cheaply \cite{rp2040}.
 
-This is fine for most cases, but the issue still remains that designers have a fixed and limited portfolio of hardware to choose from. It is often the case that a device does not include a specific interface that you need, or you have too many of one interface and not enough of another. Some more exotic peripherals may also include custom interfaces (to quote Raspbery Pi, `cursed serial device found on AliExpress`) which are not supported in any of the existing hardware.
+This is suitable for most use cases, but the issue still remains that designers have a fixed and limited portfolio of hardware to choose from. It is often the case that a device does not include a specific interface that you need, or you have too many of one interface and not enough of another. Some more exotic peripherals may also include custom interfaces (to quote Raspbery Pi, `cursed serial device found on AliExpress`) which are not supported in any of the existing hardware.
 
 As an example, Espressif's ESP32 is one of the most popular microcontrollers on the market at the moment, due to a combination of it's low cost and WiFi \& Bluetooth capabilities. In terms of digital I/O hardware, the device has 3 UART interfaces, two I\textsuperscript{2}C buses, two I\textsuperscript{2}S buses, three SPIs, a PWM controller, a TWAI/CAN (Two Wire Automotive Interface) controller, an SDIO/SPI slave controller, and an SD/SDIO/MMC host controller \cite{esp32}. This is a broad complement of I/O hardware that is representative of most devices on the market, but if a designer did want to connect more than three SPI devices, or a peripheral that doesn't support one of the aforementioned protocols, then they are left in a difficult situation.
 
@@ -72,11 +72,13 @@ The eTPU is a real-time microprocessed system, designed to run microengine code 
 
 Communication between the eTPU and host CPU happens via a shared RAM, which can be used for data transfer between the two, and as storage for eTPU microcode programs. The CPU configures the eTPU by writing to the relevant configuration registers within the system's address space, and can configure each channel mode and priority independently \cite{etpu}.
 
-The event-driven architecture differs from that of the RP2040's PIO, in that timing is decoupled from the microcode execution: code is executed in response to an event, rather than the timing being built in to the execution of the code. However, the guarantees provided by the hardware around event response latency and the nature of microcode execution within the TPU means it can meet the timing requirements necessary for interfaces such as UART.
+The event-driven architecture differs from that of the RP2040's PIO, in that timing is decoupled from the microcode execution: code is executed in response to an event, rather than the timing being built in to the execution of the code. However, the guarantees provided by the hardware around event response latency and the nature of microcode execution within the TPU means it can meet the timing requirements necessary for interfaces such as UART. This architecture does provide less flexibility however, and it is not able to implement more complex protocols. The eTPU's included RISC processor does mean it presents a more familiar programming model than the RP2040's state machines to software engineers, and provides a much broader set of operations.
 
 \subsection{ESP-32 Ultra Low Power Coprocessor}
 
 The ESP-32 contains an ultra-low power coprocessor (ULP) that can remain powered on when the rest of the SoC is in deep sleep mode. The ULP is a finite state machine can execute a program from it's own memory that is capable of accessing peripheral devices and internal sensors, and communicating via I\textsuperscript{2}C. It can wake the CPU and send interrupts to the host system, as well as control it's own sleep state. It can communicate with the rest of the SoC via a shared memory that can be read/written by the ULP while the rest of the SoC is in deep sleep. It can be started directly by software on the host system, or by a hardware timer triggered periodically.
+
+The ULP is also based around a state machine like the RP2040, and programmable using assembly. However, the ULP's assembly language is much more featured than the PIO, with a full ALU and support for load/store operations to a shared system memory similar to the eTPU. The ULP is also programmable via a set of macros in C, which makes it much more accessible than the RP2040 and eTPU.
 
 Unlike PIO and the eTPU, the ULP is not designed to implement arbitrary I/O protocols, instead acting as a co-processor that has access to only I\textsuperscript{2}C, ADC and GPIO interface hardware. Instead, it's purpose is to offload I/O functions from the CPU to save power. Given the ESP32 positioning itself as an IoT microcontroller, this makes sense, as IoT devices often want to consume as little power as possible \cite{esp32}.
 
@@ -109,8 +111,6 @@ Rocket chip provides multiple ways to integrate custom units: as custom RISC-V e
 The Rocket Core itself is a 5-stage in-order scalar core that implements the RV32G and RV64G specifications: the base 32 \& 64 bit RISC-V spec with the M (integer multiplication \& division), A (atomics), F (32-bit floating point), and D (64-bit floating point) extensions. It has an MMU that support page-based virtual memory, a non-blocking data cache, and a front-end with branch prediction. Configuration options exposed include the optional support of the extensions mentioned, the number of floating point pipeline stages, the cache and TLB sizes, and the branch prediction buffers and tables.
 
 Rocket Chip is also a major component of Chipyard: an integrated SoC design, simulation and verification framework designed for agile development of specialised hardware. It includes Rocket Chip, but also accelerators such as the Hwacha vector unit generator and various domain-specific generators for cryptography, digital signal processing, and machine learning \cite{chipyard}.
-
-(importance of flexibility as silicon scaling ends, heterogeneous architectures and custom coprocessors??)
 
 \begin{figure}[h!]
     \centering
@@ -224,7 +224,7 @@ Support for RISC-V exists within the Rust compiler, and there is a \txt{riscv} l
 
 \section{FPGAs}
 
-Usually, a microcontroller design such as the one we implement would be fabricated as an ASIC so it can be integrated into a board and other embedded systems. ASICs also provide much higher performance and efficiency than equivalent hardware implemented on FPGAs. CITATION NEEDED However, this is not an option for us as silicon fabrication is expensive and has to be done at scale. Instead, we target FPGAs for implementation, specifically a Xilinx Artix-7-100T device on a Digilent Nexys A7 board \cite{digilent}.
+Usually, a microcontroller design such as the one we implement would be fabricated as an ASIC so it can be integrated into a board and other embedded systems. ASICs also provide much higher performance and efficiency than equivalent hardware implemented on FPGAs \cite{fpga_v_asic}. However, this is not an option for us as silicon fabrication is expensive and has to be done at scale. Instead, we target FPGAs for implementation, specifically a Xilinx Artix-7-100T device on a Digilent Nexys A7 board \cite{digilent}.
 
 FPGAs contain logic and interconnect resources, designed to be reconfigured into arbitrary digital logic circuits. The primary fundamental unit of FPGA architecture is the configurable logic block (CLB). A Xilinx 7-series CLB contains 6-input lookup tables (LUTs), small memories that can be configured to implement arbitrary combinational logic, and flip-flops and latches that can implement sequential logic.
 
@@ -236,3 +236,9 @@ Hardware designs for FPGAs traditionally start as Verilog or VHDL code, which is
 
 The way Chisel fits into the FPGA design flow is as an extra RTL compilation step prior to synthesis. The Chisel compiler compiles Chisel modules within Scala to Verilog modules which can then be synthesised the same as any other Verilog code. This allows for re-use of existing FPGA tooling and workflows, as well as interoperability with Verilog codebases \cite{chisel}.
 
+\begin{figure}[H!]
+    \centering
+    \includegraphics[width=\textwidth]{../img/design-flow.png}
+    \caption{The FPGA design flow}
+    \label{fig:design-flow}
+\end{figure}
