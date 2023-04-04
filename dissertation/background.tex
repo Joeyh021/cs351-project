@@ -236,7 +236,7 @@ Hardware designs for FPGAs traditionally start as Verilog or VHDL code, which is
 
 The way Chisel fits into the FPGA design flow is as an extra RTL compilation step prior to synthesis. The Chisel compiler compiles Chisel modules within Scala to Verilog modules which can then be synthesised the same as any other Verilog code. This allows for re-use of existing FPGA tooling and workflows, as well as interoperability with Verilog codebases \cite{chisel}.
 
-\begin{figure}[H!]
+\begin{figure}[h!]
     \centering
     \includegraphics[width=\textwidth]{../img/design-flow.png}
     \caption{The FPGA design flow}

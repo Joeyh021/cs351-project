@@ -1,7 +1,10 @@
 \chapter{Introduction}
 \label{ch:introduction}
 
-The primary purpose of an embedded system is to provide computing functions within the context of a larger electromechanical system. As such, embedded system design usually starts with interface and I/O requirements. Microcontroller units (MCUs) have to be able to interface with the world around them via sensors, actuators, LEDs, etc, but communicating with external hardware can be difficult due to the need for high frequencies and precision timing.
+An embedded system is, loosely defined, `any device that includes a programmable computer but is not itself intended to be a general-purpose
+computer' \cite{wolf}. A laptop or desktop PC is not an embedded system, but digital clocks, calculators, televisions, and domestic appliances such as refrigerators and dishwashers are all examples of embedded systems.
+
+Embedded systems are typically built around microcontrollers, small CPUs that are designed to provide computing functions within the context of a larger electromechanical system. As such, embedded system design usually starts with interface and I/O requirements. Microcontroller units (MCUs) have to be able to interface with the world around them via sensors, actuators, LEDs, etc, but communicating with external hardware can be difficult due to the need for high frequencies and precision timing.
 
 General-purpose interfaces such as UART, SPI, and I\textsuperscript{2}C are commonly found in microcontrollers and facilitate communication with a broad range of common electronic devices via standard protocols. However, different interfaces have different requirements which necessitates the inclusion of dedicated fixed-function hardware for each communication protocol a system wishes to support. Each hardware interface adds cost and complexity to development, as well as the cost in system power consumption and chip area. General-purpose microcontrollers typically include a variety of hardware to be as flexible as possible, which almost always results in unnecessary expense as it is rare that a MCU's full complement of I/O hardware is in use for any given use case. It is also sometimes the case that there is not enough of a single type of interface within a system, i.e., you have 2 SPI and 2 UART ports but you need 4 UARTs, which can leave designers in a difficult position.
 
