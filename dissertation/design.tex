@@ -4,8 +4,9 @@
 In this chapter, we describe the overall design of our PIO device, and how we plan to integrate it into a RISC-V SoC.
 
 \section{PIO Assembly}
+\label{sec:pioasm}
 
-The design of the PIO starts with the assembly language which it executes. We re-use parts of the assembly language from the RP2040 PIO, as described in section 3.3 of the RP2040 Datasheet and shown in table \ref{tab:pioasm}. There are 9 instructions, each 16 bits long. The upper 3 bits are the opcode, and bits 12-8 encode a delay, an optional number of cycles to wait before executing the next instruction, and/or side set, a value encoded directly into the instruction to write out to pre-configured pins. The rest of the instructions differ, encoding different flags and data. We omit the full description of the original PIO instruction set for brevity, instead referring to the datasheet \cite{rp2040}.
+The design of the PIO starts with the assembly language which it executes. We re-use parts of the assembly language from the RP2040 PIO, as described in section 3.3 of the RP2040 Datasheet and shown in table \ref{tab:pioasm}. There are 9 instructions, each 16 bits long. The upper 3 bits are the opcode, and bits 12-8 encode a delay and/or side set, the functionality of which are described in Section \ref{sec:functionality}. The rest of the instructions differ, encoding different flags and data. We omit the full description of the original PIO instruction set for brevity, instead referring to the datasheet \cite{rp2040}.
 
 % \begin{itemize}
 %     \item Jump sets the program counter to a given address if the condition is true
@@ -51,15 +52,15 @@ The design of the PIO starts with the assembly language which it executes. We re
     \label{tab:pioasm}
 \end{table}
 
-Our version of pioasm is much simplified from this: the number of instructions is reduced from 9 to 8, some of the flags are removed, and much of the functionality that is configurable via registers is fixed. These restrictions are necessary to simplify the design such that it can be implemented within a realistic timeframe. Our PIO instruction set, referred to as RVPIO (RISC-V PIO) from here on, is given in table \ref{tab:rvpioasm}, and details of the changes between the two are given below.
+Our version of pioasm is much simplified from this: the number of instructions is reduced from 9 to 8, some of the flags are removed, and much of the functionality of the instructions that is configurable via registers is fixed. These restrictions are necessary to simplify the design such that it can be implemented within a realistic timeframe. Our PIO instruction set, referred to as RVPIO (RISC-V PIO) from here on, is given in table \ref{tab:rvpioasm}, and details of the changes between the two are given below.
 
 \begin{itemize}
-    \item The IRQ instruction is removed. This is to simplify integration of the PIO into the SoC, handling interrupts in either direction is a very involved process on both the hardware and software level and is left out of scope for this project.
+    \item The IRQ instruction is removed. This is to simplify integration of the PIO into the SoC: handling interrupts in either direction is a very involved process on both the hardware and software level and is left out of scope for this project.
     \item Bit 12 is always side-set, and only 1 pin may be set/cleared using this. The side-set pin is fixed in the hardware.
     \item The WAIT instruction can only wait on an input pin changing state, instead of being configurable to wait on an IRQ instead. The exact pin that is waited on is configurable via a control register.
     \item IN and OUT instructions are reduced in the sources/destinations they can shift from/to. They may only shift to/from a scratch register or pins. The OUT instruction can not shift to the program counter or execute OSR data as an instruction.
     \item PUSH and PULL instructions do not have the block (Blk) flag, instead behaving as if this flag was always set, which is to stall execution if the FIFO is full/empty.
-    \item MOV is restricted in it's capabilities. The original optionally could invert or reverse the bits of a word, which is not implemented in RVPIO. The sources/destinations are also restricted: it cannot read from status registers, and it cannot write to the program counter or execute data as an instruction.
+    \item MOV is restricted in it's capabilities. The original optionally could invert or reverse the bits of the data before writing, which is not implemented in RVPIO. The sources/destinations are also restricted: it cannot read from status registers, and it cannot write to the program counter or execute data as an instruction.
 \end{itemize}
 
 \begin{table}[h!]
@@ -79,25 +80,44 @@ Our version of pioasm is much simplified from this: the number of instructions i
     \label{tab:rvpioasm}
 \end{table}
 
-The assembly language informs most
-
-
 
 \section{Functional Details}
-There are some other details of the PIO's design which must be clarified before we can move to implementation. Again, most of these details are drawn from the RP2040 datasheet
+\label{sec:functionality}
 
-Side-set is already described
+The assembly language informs most of the implementation details of RVPIO, but there are some other details which must be clarified so that we may define the set of control registers and the details of how different system components will interact before we move to implementation. Again, most of these details are drawn from the RP2040 datasheet \cite{rp2040} and modified/simplified to reduce complexity.
 
-Stalling
+Side-set is a feature of the PIO that allows for instructions to encode data to write to the pins directly within them. When an instruction is executed, the side-set value is written immediately to pre-configured output pins. This is useful for, for example, driving a clock signal on each cycle in parallel with writing out data. In RVPIO, only one side-set bit may be encoded in each instruction, and there is a fixed output pin for side-set.
 
-Autowrap
+Delays encoded into instructions allow to more precisely control the timing of a program. Certain instructions may need to be executed on certain cycles, so delays allow to tell the system to optionally insert a number of cycles of delay after the execution of an instruction, on top of the single cycle it takes to execute instructions usually. Up to 16 cycles of delay may be included after each RVPIO instruction.
 
-Clock divider
+As shown in Figure \ref{fig:pio-sm}, the PIO includes a clock divider for configuring the PIO clock speed relative to the system clock. The RVPIO clock divider is a 16-bit integer clock divider, with the divisor configurable via a configuration register.
 
-Pin Mapping config
+Another configurable feature of the PIO's execution unit is program wrapping. Instead of wasting instructions encoding loops into the program with explicit jumps which may disrupt the timing of your program, the program counter can be configured to wrap back to 0 when it reaches a given address. This behaviour exists in RVPIO, and is configurable via a register.
+
+One of the requirements listed in Chapter \ref{ch:objectives} is that RVPIO must be able to flexibly map inputs and outputs to physical device pins. This is possible by configuring a range of pins which output data is written out to, a separate range which input data is read from. 32 physical I/O pins are used, and configuration registers specify a `base' and `count' for both input and output. For example, given an input base and count of 0 and 3, and an output base and count of 6 and 2, pins 0 to 2 (inclusive) would be used for output data, and pins 6 and 7 would be used for input data.
+
+The output shift register (OSR) pulls data from the TX FIFO and shifts it out to the output pins (or another register), and must be re-filled with a PULL once empty. This is a waste of an instruction, so shift registers include a counter that counts the number of bit shifted, and can be configured to automatically refill with a PULL once a specified shift threshold is exceeded. The same applies to the input shift register (ISR) pushing data to the RX FIFO once it is full.
+
+If a pull from the TX FIFO is attempted (either implicitly via autopull or explicitly via a PULL instruction), and the FIFO is empty, then the system may stall. A stall causes the program counter not to increment the program counter and to re-execute the instruction on the next cycle. This allows for PIO programs to wait for data in the FIFOs before continuing to output. The same applies for attempting to push to a full RX FIFO, the system will stall until there is room in the FIFO to push the data out. Stalls may also be issued by WAIT instructions, which cause the system to stall unless the instruction's condition is met. Any delays encoded into an instruction will be executed \textit{after} an instruction has finished stalling.
 
 \section{Block Design}
 
+Figure \ref{fig:bd} shows the high-level block design of the RVPIO device, informed by the instruction set and other functional details described in Sections \ref{sec:pioasm} and \ref{sec:functionality}. The connections between individual components are defined, with datapaths in blue and control signalling in red. Arrows denote the direction of data flow (pointing at the inputs).
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1.1\textwidth]{../img/bd.png}
+    \caption{Block diagram of the RVPIO}
+    \label{fig:bd}
+\end{figure}
+
+The primary datapath is that between the FIFOs and output pins via the shift registers: data is shifted from the pins into the ISR, and then pushed to the RX FIFO (and the same in reverse via the OSR). Execution of PUSH, PULL, IN, and OUT instructions is handled by logic the shift registers themselves, and control lines from the execution unit signal when to do so. The shift registers may signal a stall to the instruction decoder if attempting to push to a full/pull from an empty FIFO.
+
+The other four instructions are executed in sub-units of the execution unit. MOVE and SET instructions can read/write to any of the 5 registers, the branch unit reads registers to compute branch conditions, and the wait unit reads the pin register to conditionally signal a stall back to the instruction decoder.
+
+Much of the complexity in control signalling lies in the execution unit, as the instruction decoder and program counter have to be able to handle instruction stalling and re-execution, and inserting delays into the flow of execution. The instruction decoder also directly signals side-set values to the pin register.
+
+The control registers and instruction memory form a single 16-bit address space which is accessible via a write-only memory port from the host system. All the control registers included are shown on the diagram. Enough memory is included for 32 instructions, same as the RP2040 PIO \cite{rp2040}. The control registers are all readable by the components which they configure.
 
 
 \section{HDL skeleton}
