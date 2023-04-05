@@ -8,32 +8,6 @@ In this chapter, we describe the overall design of our PIO device, and how we pl
 
 The design of the PIO starts with the assembly language which it executes. We re-use parts of the assembly language from the RP2040 PIO, as described in section 3.3 of the RP2040 Datasheet and shown in table \ref{tab:pioasm}. There are 9 instructions, each 16 bits long. The upper 3 bits are the opcode, and bits 12-8 encode a delay and/or side set, the functionality of which are described in Section \ref{sec:functionality}. The rest of the instructions differ, encoding different flags and data. We omit the full description of the original PIO instruction set for brevity, instead referring to the datasheet \cite{rp2040}.
 
-% \begin{itemize}
-%     \item Jump sets the program counter to a given address if the condition is true
-%           \begin{itemize}
-%               \item Can be unconditional, or do a check against a pin value or a scratch register
-%           \end{itemize}
-%     \item Wait pauses execution until a condition is met
-%           \begin{itemize}
-%               \item The polarity flag defines whether to wait for a 1 or a 0
-%               \item The source flag defines wether to wait for a pin or on an interrupt
-%           \end{itemize}
-%     \item In shifts a given number of bits from a source into the input shift register
-%           \begin{itemize}
-%               \item The source can be pins, the other shift register, or a scratch register
-%           \end{itemize}
-%     \item Out shifts a given number of bits out of the output shift register to a destination
-%           \begin{itemize}
-%               \item The source can be pins, the other shift register, or a scratch register
-%               \item Data can also be shifted to the program counter to cause a jump, or data can be shifted out to execute OSR data as an instruction
-%           \end{itemize}
-%     \item Push pushes the contents of the output shift register into the RX FIFO as a single 32-bit word
-%           \begin{itemize}
-%               \item The source can be pins, the other shift register, or a scratch register
-%               \item Data can also be shifted to the program counter to cause a jump, or data can be shifted out to execute OSR data as an instruction
-%           \end{itemize}
-% \end{itemize}
-
 \begin{table}[h!]
     \begin{tabular}{|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|}
         \hline
@@ -52,7 +26,7 @@ The design of the PIO starts with the assembly language which it executes. We re
     \label{tab:pioasm}
 \end{table}
 
-Our version of pioasm is much simplified from this: the number of instructions is reduced from 9 to 8, some of the flags are removed, and much of the functionality of the instructions that is configurable via registers is fixed. These restrictions are necessary to simplify the design such that it can be implemented within a realistic timeframe. Our PIO instruction set, referred to as RVPIO (RISC-V PIO) from here on, is given in table \ref{tab:rvpioasm}, and details of the changes between the two are given below.
+Our version of pioasm is much simplified from this: the number of instructions is reduced from 9 to 8, some of the flags are removed, and much of the functionality of the instructions that is configurable via registers is instead fixed. These restrictions are necessary to simplify the design such that it can be implemented within a realistic timeframe. Our PIO instruction set, referred to as RVPIO (RISC-V PIO) from here on, is given in table \ref{tab:rvpioasm}, and details of the changes between the two are given below.
 
 \begin{itemize}
     \item The IRQ instruction is removed. This is to simplify integration of the PIO into the SoC: handling interrupts in either direction is a very involved process on both the hardware and software level and is left out of scope for this project.
@@ -107,11 +81,11 @@ Figure \ref{fig:bd} shows the high-level block design of the RVPIO device, infor
 \begin{figure}[H]
     \centering
     \includegraphics[width=1.1\textwidth]{../img/bd.png}
-    \caption{Block diagram of the RVPIO}
+    \caption{Block diagram of the RVPIO device}
     \label{fig:bd}
 \end{figure}
 
-The primary datapath is that between the FIFOs and output pins via the shift registers: data is shifted from the pins into the ISR, and then pushed to the RX FIFO (and the same in reverse via the OSR). Execution of PUSH, PULL, IN, and OUT instructions is handled by logic the shift registers themselves, and control lines from the execution unit signal when to do so. The shift registers may signal a stall to the instruction decoder if attempting to push to a full/pull from an empty FIFO.
+The primary datapath is that between the FIFOs and output pins via the shift registers: data is shifted from the pins into the ISR, and then pushed to the RX FIFO (and the same in reverse via the OSR). Execution of PUSH, PULL, IN, and OUT instructions is handled by logic within the shift registers themselves, controlled by signalling from the execution unit. The shift registers may signal a stall to the instruction decoder if attempting to push to a full/pull from an empty FIFO.
 
 The other four instructions are executed in sub-units of the execution unit. MOVE and SET instructions can read/write to any of the 5 registers, the branch unit reads registers to compute branch conditions, and the wait unit reads the pin register to conditionally signal a stall back to the instruction decoder.
 
@@ -119,7 +93,24 @@ Much of the complexity in control signalling lies in the execution unit, as the 
 
 The control registers and instruction memory form a single 16-bit address space which is accessible via a write-only memory port from the host system. All the control registers included are shown on the diagram. Enough memory is included for 32 instructions, same as the RP2040 PIO \cite{rp2040}. The control registers are all readable by the components which they configure.
 
-
-\section{HDL skeleton}
+From this starting point is easy to move to HDL implementation: each block defines a Chisel module, and the inputs and outputs for each module are already well defined.
 
 \section{SoC template}
+
+For designing the SoC, our starting point is a GitHub repository by Xilinx  engineer Eugene Tarassov \footnote{\url{https://github.com/eugene-tarassov/vivado-risc-v}}, providing scripts and source code to generate a RISC-V SoC based on Rocket chip in Vivado, Xilinx's FPGA design tool. A number of Xilinx boards are supported, including our Digilent Nexys A7 board. The block design from the Vivado project is shown in  \ref{fig:vivado-bd}.
+
+As well as a Rocket Chip SoC with configurable functionality (primarily the number and type of cores), RTL modules are included for an Ethernet controller, SD card controller, and UART serial port, allowing to run a fully functional system with internet connectivity on the FPGA. The peripherals are external to the Rocket chip system and connected over an AXI network. AXI (Advanced eXtensible Interface) is part of ARM's Advanced Microcontroller Bus Architecture (AMBA), and provides a protocol for interconnect in digital systems designs. It is ubiquitous within Xilinx IP, and is also used within our system \cite{axi}.
+
+This gives two options for integrating PIO: as part of the Rocket system, or as part of the AXI network. We do the latter, as AXI is much better documented than Rocket chip's interconnect mechanisms, and better supported within Xilinx's tools and ecosystem. The PIO module can be designed entirely separately, and then easily imported into the design as an extra RTL module using Vivado's block design tools, and mapped into the processor's address space using the address editor.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1.1\textwidth]{../img/bd.png}
+    \caption{The Vivado block diagram which we integrate PIO into,}
+    \label{fig:vivado-bd}
+\end{figure}
+
+Scripts are provided for compiling the Linux kernel and a Debian-based system, which can be interacted with via a serial console. Alternatively, bare metal software can be compiled to run directly on the cores, for which a linker script and startup assembly code is provided. Software is loaded from an ELF executable on an SD card by a bootloader stored in RAM on the FPGA. Implementing Linux kernel drivers for PIO is out of scope for this project, so we target bare metal software for writing any test code.
+
+
+
