@@ -9,6 +9,7 @@ In this chapter, we describe the overall design of our PIO device, and how we pl
 The design of the PIO starts with the assembly language which it executes. We re-use parts of the assembly language from the RP2040 PIO, as described in section 3.3 of the RP2040 Datasheet and shown in table \ref{tab:pioasm}. There are 9 instructions, each 16 bits long. The upper 3 bits are the opcode, and bits 12-8 encode a delay and/or side set, the functionality of which are described in Section \ref{sec:functionality}. The rest of the instructions differ, encoding different flags and data. We omit the full description of the original PIO instruction set for brevity, instead referring to the datasheet \cite{rp2040}.
 
 \begin{table}[h!]
+    \centering
     \begin{tabular}{|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|}
         \hline
         Bit:       & 15 & 14 & 13 & 12                                  & 11                               & 10                             & 9                           & 8                          & 7 & 6 & 5 & 4 & 3 & 2 & 1 & 0 \\ \hline
@@ -38,6 +39,7 @@ Our version of pioasm is much simplified from this: the number of instructions i
 \end{itemize}
 
 \begin{table}[h!]
+    \centering
     \begin{tabular}{|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|}
         \hline
         Bit:       & 15 & 14 & 13 & 12   & 11                         & 10                               & 9                              & 8 & 7                               & 6 & 5 & 4 & 3 & 2 & 1 & 0 \\ \hline

@@ -31,6 +31,7 @@ Implementation starts from the block diagram described in Chapter \ref{ch:design
               \item \txt{CSR} - Control and status register file
               \item \txt{InstructionMem} - 32x16bit Instruction memory
               \item \txt{ScratchReg} - 32-bit scratch register
+              \item \txt{Pins} - Pin register and I/O mapping
           \end{itemize}
     \item \txt{util} - Miscellaneous reusable components and utilities
           \begin{itemize}
@@ -106,14 +107,60 @@ io.sideSet := Mux(sleeping, sideSetReg, sideSet)
     \label{lst:side-set}
 \end{listing}
 
-\subsection{FIFOs}
-
 \subsection{Shift Registers}
 
+The shift registers are fairly complex: they include logic for reading/writing from/to the FIFOs, as well as logic for shifting bits in and out. There are multiple configuration options too: shift direction, auto push/pull, shift thresholds, etc.
+
+
+\subsubsection{OSR}
+
+The OSR is the more complicated of the two, as autopull behaves slightly differently from autopush. Hence, there are a number of cases to handle for each instruction which interacts with the OSR.
+
+A \txt{PULL} instruction will cause the OSR to be refilled, and the shift counter to be reset to 0, indicating the OSR is full. If a \txt{PULL} instruction has the `If Empty' flag set, then the pull only takes effect if the shift threshold has been reached, ie, the OSR is empty. If autopull is enabled and the OSR is full, then a \txt{PULL} instruction has no effect.
+
+If an \txt{OUT} instruction is issued, autopull is enabled, and the OSR is empty, then instead of executing an out, the hardware will pull from the fifo and stall, causing the \txt{OUT} to happen on the next cycle. This is because a it cannot \txt{PULL} and then \txt{OUT} the pulled data on the same cycle due to the deep combinational path this would create from the FIFOs straight to the outputs. An \txt{OUT} instruction otherwise shifts the register data in the configured direction by the specified number of bits, putting the N shifted out bits as the least significant bits on the 32-bit output line and filling the register with 0s. The shift count register is also incremented by N. After an \txt{OUT} instruction, an autopull may take place if the shift count register indicates threshold has been met (the OSR is empty) which causes the OSR to be refilled ready for the next \txt{OUT}.
+
+\txt{MOVE} or \txt{SET} instructions may also read/write from the OSR. A read doesn't have any effect on the OSR or FIFO state, but a write to the OSR causes the shift count register to be reset to 0, indicating it has refilled.
+
+This logic is implemented as a lot of chained/nested \txt{when}/\txt{otherwise} blocks, which makes for not the cleanest code, but is the best way to represent the necessary logic. The shift counter value saturates at 32, which can be tricky to work with and hard to consistently get right, so a custom saturating addition operator \txt{+!} is used to perform the threshold checks and increments. Examples is shown in Listing \ref{lst:sat_add}.
+
+
+\begin{listing}[h!]
+    \vspace{0.5cm}
+    \begin{minted}{scala}
+//add shiftCount to the register, capping the value at 32.
+shiftCountReg := shiftCountReg /+\ shiftCount
+//boolean condition to check if shift count exceeds threshold
+val thresholdReached = (shiftCountReg /+\ shiftCount) >= thresh
+    \end{minted}
+    \caption{Example usages of the saturating add operator}
+    \label{lst:sat_add}
+\end{listing}
+
+\subsubsection{ISR}
+
+The ISR is slightly simpler, as there are fewer implications in the interaction between a \txt{IN} instruction and autopush. An \txt{IN} instruction is similar to an \txt{OUT}: the data is shifted by N bits in the configured direction, and the N least significant bits of the input line are placed in the register (as the MSBs if shifting from the right, or LSBs if from the left).
+
+A push may happen in parallel with a shift due to autopush if autopush is enabled and the autopush threshold is reached (the ISR is full). A \txt{PUSH} instruction has the same behaviour as an autopush: write a word to the FIFO and clear the register, resetting the shift count to 0. The `If Empty' flag behaves similarly to the `If Full' flag, only allowing a push to take place if the ISR is full. A push triggered either automatically or by an instruction may stall if the FIFO is full.
+
+\subsection{FIFOs}
+
+The FIFOs are capable of storing up to 4 32-bit words, and buffer data between the PIO system and the rest of the SoC. The complexity in the FIFOs lies in the fact that the PIO and the SoC may operate in different clock domains, meaning the FIFOs must be asynchronous.
+
+discussion of metastability
+
+design ripped from paper
+
+show diagram
+
+talk about
+
+
 \subsection{Pin Mapping}
-
+pin mapping is way less complex: directions are fixed
 \subsection{Other Components}
-
+clock divider
+scratch reg
 \section{AXI Wrapper}
 
 \section{Chisel Abstractions}
