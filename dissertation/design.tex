@@ -11,16 +11,16 @@ The design of the PIO starts with the assembly language which it executes. We re
 \begin{table}[h!]
     \begin{tabular}{|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|}
         \hline
-        \textbf{Bit:} & 15 & 14 & 13 & 12                                  & 11                               & 10                             & 9                           & 8                          & 7 & 6 & 5 & 4 & 3 & 2 & 1 & 0 \\ \hline
-        \textbf{JMP}  & 0  & 0  & 0  & \multicolumn{5}{c|}{Delay/side-set} & \multicolumn{3}{c|}{Condition}   & \multicolumn{5}{c|}{Address}                                                                                              \\ \hline
-        \textbf{WAIT} & 0  & 0  & 1  & \multicolumn{5}{c|}{Delay/side-set} & Pol                              & \multicolumn{2}{c|}{Source}    & \multicolumn{5}{c|}{Index}                                                               \\ \hline
-        \textbf{IN}   & 0  & 1  & 0  & \multicolumn{5}{c|}{Delay/side-set} & \multicolumn{3}{c|}{Source}      & \multicolumn{5}{c|}{Bit count}                                                                                            \\ \hline
-        \textbf{OUT}  & 0  & 1  & 1  & \multicolumn{5}{c|}{Delay/side-set} & \multicolumn{3}{c|}{Destination} & \multicolumn{5}{c|}{Bit count}                                                                                            \\ \hline
-        \textbf{PUSH} & 1  & 0  & 0  & \multicolumn{5}{c|}{Delay/side-set} & 0                                & IfE                            & Blk                         & 0                          & 0 & 0 & 0 & 0                 \\ \hline
-        \textbf{PULL} & 1  & 0  & 0  & \multicolumn{5}{c|}{Delay/side-set} & 1                                & IfE                            & Blk                         & 0                          & 0 & 0 & 0 & 0                 \\ \hline
-        \textbf{MOV}  & 1  & 0  & 1  & \multicolumn{5}{c|}{Delay/side-set} & \multicolumn{3}{c|}{Destination} & \multicolumn{2}{c|}{Op}        & \multicolumn{3}{c|}{Source}                                                              \\ \hline
-        \textbf{IRQ}  & 1  & 1  & 0  & \multicolumn{5}{c|}{Delay/side-set} & 0                                & Clr                            & Wait                        & \multicolumn{5}{c|}{Index}                                 \\ \hline
-        \textbf{SET}  & 1  & 1  & 1  & \multicolumn{5}{c|}{Delay/side-set} & \multicolumn{3}{c|}{Destination} & \multicolumn{5}{c|}{Data}                                                                                                 \\ \hline
+        Bit:       & 15 & 14 & 13 & 12                                  & 11                               & 10                             & 9                           & 8                          & 7 & 6 & 5 & 4 & 3 & 2 & 1 & 0 \\ \hline
+        \txt{JMP}  & 0  & 0  & 0  & \multicolumn{5}{c|}{Delay/side-set} & \multicolumn{3}{c|}{Condition}   & \multicolumn{5}{c|}{Address}                                                                                              \\ \hline
+        \txt{WAIT} & 0  & 0  & 1  & \multicolumn{5}{c|}{Delay/side-set} & Pol                              & \multicolumn{2}{c|}{Source}    & \multicolumn{5}{c|}{Index}                                                               \\ \hline
+        \txt{IN}   & 0  & 1  & 0  & \multicolumn{5}{c|}{Delay/side-set} & \multicolumn{3}{c|}{Source}      & \multicolumn{5}{c|}{Bit count}                                                                                            \\ \hline
+        \txt{OUT}  & 0  & 1  & 1  & \multicolumn{5}{c|}{Delay/side-set} & \multicolumn{3}{c|}{Destination} & \multicolumn{5}{c|}{Bit count}                                                                                            \\ \hline
+        \txt{PUSH} & 1  & 0  & 0  & \multicolumn{5}{c|}{Delay/side-set} & 0                                & IfE                            & Blk                         & 0                          & 0 & 0 & 0 & 0                 \\ \hline
+        \txt{PULL} & 1  & 0  & 0  & \multicolumn{5}{c|}{Delay/side-set} & 1                                & IfE                            & Blk                         & 0                          & 0 & 0 & 0 & 0                 \\ \hline
+        \txt{MOV}  & 1  & 0  & 1  & \multicolumn{5}{c|}{Delay/side-set} & \multicolumn{3}{c|}{Destination} & \multicolumn{2}{c|}{Op}        & \multicolumn{3}{c|}{Source}                                                              \\ \hline
+        \txt{IRQ}  & 1  & 1  & 0  & \multicolumn{5}{c|}{Delay/side-set} & 0                                & Clr                            & Wait                        & \multicolumn{5}{c|}{Index}                                 \\ \hline
+        \txt{SET}  & 1  & 1  & 1  & \multicolumn{5}{c|}{Delay/side-set} & \multicolumn{3}{c|}{Destination} & \multicolumn{5}{c|}{Data}                                                                                                 \\ \hline
     \end{tabular}
     \caption{The RP2040 PIO assembly language \cite{rp2040}}
     \label{tab:pioasm}
@@ -29,26 +29,26 @@ The design of the PIO starts with the assembly language which it executes. We re
 Our version of pioasm is much simplified from this: the number of instructions is reduced from 9 to 8, some of the flags are removed, and much of the functionality of the instructions that is configurable via registers is instead fixed. These restrictions are necessary to simplify the design such that it can be implemented within a realistic timeframe. Our PIO instruction set, referred to as RVPIO (RISC-V PIO) from here on, is given in table \ref{tab:rvpioasm}, and details of the changes between the two are given below.
 
 \begin{itemize}
-    \item The IRQ instruction is removed. This is to simplify integration of the PIO into the SoC: handling interrupts in either direction is a very involved process on both the hardware and software level and is left out of scope for this project.
+    \item The \txt{IRQ} instruction is removed. This is to simplify integration of the PIO into the SoC: handling interrupts in either direction is a very involved process on both the hardware and software level and is left out of scope for this project.
     \item Bit 12 is always side-set, and only 1 pin may be set/cleared using this. The side-set pin is fixed in the hardware.
-    \item The WAIT instruction can only wait on an input pin changing state, instead of being configurable to wait on an IRQ instead. The exact pin that is waited on is configurable via a control register.
-    \item IN and OUT instructions are reduced in the sources/destinations they can shift from/to. They may only shift to/from a scratch register or pins. The OUT instruction can not shift to the program counter or execute OSR data as an instruction.
-    \item PUSH and PULL instructions do not have the block (Blk) flag, instead behaving as if this flag was always set, which is to stall execution if the FIFO is full/empty.
-    \item MOV is restricted in it's capabilities. The original optionally could invert or reverse the bits of the data before writing, which is not implemented in RVPIO. The sources/destinations are also restricted: it cannot read from status registers, and it cannot write to the program counter or execute data as an instruction.
+    \item The \txt{WAIT} instruction can only wait on an input pin changing state, instead of being configurable to wait on an \txt{IRQ} instead. The exact pin that is waited on is configurable via a control register.
+    \item \txt{IN} and \txt{OUT} instructions are reduced in the sources/destinations they can shift from/to. They may only shift to/from a scratch register or pins. The \txt{OUT} instruction can not shift to the program counter or execute OSR data as an instruction.
+    \item \txt{PUSH} and \txt{PULL} instructions do not have the block (Blk) flag, instead behaving as if this flag was always set, which is to stall execution if the FIFO is full/empty.
+    \item \txt{MOV} is restricted in it's capabilities. The original optionally could invert or reverse the bits of the data before writing, which is not implemented in RVPIO. The sources/destinations are also restricted: it cannot read from status registers, and it cannot write to the program counter or execute data as an instruction.
 \end{itemize}
 
 \begin{table}[h!]
     \begin{tabular}{|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|}
         \hline
-        \textbf{Bit:} & 15 & 14 & 13 & 12   & 11                         & 10                               & 9                              & 8 & 7                               & 6 & 5 & 4 & 3 & 2 & 1 & 0 \\ \hline
-        \textbf{JMP}  & 0  & 0  & 0  & S.S. & \multicolumn{4}{c|}{Delay} & \multicolumn{3}{c|}{Condition}   & \multicolumn{5}{c|}{Address}                                                                     \\ \hline
-        \textbf{WAIT} & 0  & 0  & 1  & S.S. & \multicolumn{4}{c|}{Delay} & Pol                              & 0                              & 0 & \multicolumn{5}{c|}{Pin Select}                             \\ \hline
-        \textbf{IN}   & 0  & 1  & 0  & S.S. & \multicolumn{4}{c|}{Delay} & \multicolumn{3}{c|}{Source}      & \multicolumn{5}{c|}{Bit count}                                                                   \\ \hline
-        \textbf{OUT}  & 0  & 1  & 1  & S.S. & \multicolumn{4}{c|}{Delay} & \multicolumn{3}{c|}{Destination} & \multicolumn{5}{c|}{Bit count}                                                                   \\ \hline
-        \textbf{PUSH} & 1  & 0  & 0  & S.S. & \multicolumn{4}{c|}{Delay} & 0                                & IfE                            & 0 & 0                               & 0 & 0 & 0 & 0             \\ \hline
-        \textbf{PULL} & 1  & 0  & 0  & S.S. & \multicolumn{4}{c|}{Delay} & 1                                & IfE                            & 0 & 0                               & 0 & 0 & 0 & 0             \\ \hline
-        \textbf{MOV}  & 1  & 0  & 1  & S.S. & \multicolumn{4}{c|}{Delay} & \multicolumn{3}{c|}{Destination} & 0                              & 0 & \multicolumn{3}{c|}{Source}                                 \\ \hline
-        \textbf{SET}  & 1  & 1  & 1  & S.S. & \multicolumn{4}{c|}{Delay} & \multicolumn{3}{c|}{Destination} & \multicolumn{5}{c|}{Data}                                                                        \\ \hline
+        Bit:       & 15 & 14 & 13 & 12   & 11                         & 10                               & 9                              & 8 & 7                               & 6 & 5 & 4 & 3 & 2 & 1 & 0 \\ \hline
+        \txt{JMP}  & 0  & 0  & 0  & S.S. & \multicolumn{4}{c|}{Delay} & \multicolumn{3}{c|}{Condition}   & \multicolumn{5}{c|}{Address}                                                                     \\ \hline
+        \txt{WAIT} & 0  & 0  & 1  & S.S. & \multicolumn{4}{c|}{Delay} & Pol                              & 0                              & 0 & \multicolumn{5}{c|}{Pin Select}                             \\ \hline
+        \txt{IN}   & 0  & 1  & 0  & S.S. & \multicolumn{4}{c|}{Delay} & \multicolumn{3}{c|}{Source}      & \multicolumn{5}{c|}{Bit count}                                                                   \\ \hline
+        \txt{OUT}  & 0  & 1  & 1  & S.S. & \multicolumn{4}{c|}{Delay} & \multicolumn{3}{c|}{Destination} & \multicolumn{5}{c|}{Bit count}                                                                   \\ \hline
+        \txt{PUSH} & 1  & 0  & 0  & S.S. & \multicolumn{4}{c|}{Delay} & 0                                & IfE                            & 0 & 0                               & 0 & 0 & 0 & 0             \\ \hline
+        \txt{PULL} & 1  & 0  & 0  & S.S. & \multicolumn{4}{c|}{Delay} & 1                                & IfE                            & 0 & 0                               & 0 & 0 & 0 & 0             \\ \hline
+        \txt{MOV}  & 1  & 0  & 1  & S.S. & \multicolumn{4}{c|}{Delay} & \multicolumn{3}{c|}{Destination} & 0                              & 0 & \multicolumn{3}{c|}{Source}                                 \\ \hline
+        \txt{SET}  & 1  & 1  & 1  & S.S. & \multicolumn{4}{c|}{Delay} & \multicolumn{3}{c|}{Destination} & \multicolumn{5}{c|}{Data}                                                                        \\ \hline
     \end{tabular}
     \caption{Our RVPIO assembly language \cite{rp2040}}
     \label{tab:rvpioasm}
@@ -70,9 +70,9 @@ Another configurable feature of the PIO's execution unit is program wrapping. In
 
 One of the requirements listed in Chapter \ref{ch:objectives} is that RVPIO must be able to flexibly map inputs and outputs to physical device pins. This is possible by configuring a range of pins which output data is written out to, a separate range which input data is read from. 32 physical I/O pins are used, and configuration registers specify a `base' and `count' for both input and output. For example, given an input base and count of 0 and 3, and an output base and count of 6 and 2, pins 0 to 2 (inclusive) would be used for output data, and pins 6 and 7 would be used for input data.
 
-The output shift register (OSR) pulls data from the TX FIFO and shifts it out to the output pins (or another register), and must be re-filled with a PULL once empty. This is a waste of an instruction, so shift registers include a counter that counts the number of bit shifted, and can be configured to automatically refill with a PULL once a specified shift threshold is exceeded. The same applies to the input shift register (ISR) pushing data to the RX FIFO once it is full.
+The output shift register (OSR) pulls data from the TX FIFO and shifts it out to the output pins (or another register), and must be re-filled with a \txt{PULL} once empty. This is a waste of an instruction, so shift registers include a counter that counts the number of bit shifted, and can be configured to automatically refill with a \txt{PULL} once a specified shift threshold is exceeded. The same applies to the input shift register (ISR) pushing data to the RX FIFO once it is full.
 
-If a pull from the TX FIFO is attempted (either implicitly via autopull or explicitly via a PULL instruction), and the FIFO is empty, then the system may stall. A stall causes the program counter not to increment the program counter and to re-execute the instruction on the next cycle. This allows for PIO programs to wait for data in the FIFOs before continuing to output. The same applies for attempting to push to a full RX FIFO, the system will stall until there is room in the FIFO to push the data out. Stalls may also be issued by WAIT instructions, which cause the system to stall unless the instruction's condition is met. Any delays encoded into an instruction will be executed \textit{after} an instruction has finished stalling.
+If a pull from the TX FIFO is attempted (either implicitly via autopull or explicitly via a \txt{PULL} instruction), and the FIFO is empty, then the system may stall. A stall causes the program counter not to increment the program counter and to re-execute the instruction on the next cycle. This allows for PIO programs to wait for data in the FIFOs before continuing to output. The same applies for attempting to push to a full RX FIFO, the system will stall until there is room in the FIFO to push the data out. Stalls may also be issued by \txt{WAIT} instructions, which cause the system to stall unless the instruction's condition is met. Any delays encoded into an instruction will be executed \textit{after} an instruction has finished stalling.
 
 \section{Block Design}
 
@@ -85,9 +85,9 @@ Figure \ref{fig:bd} shows the high-level block design of the RVPIO device, infor
     \label{fig:bd}
 \end{figure}
 
-The primary datapath is that between the FIFOs and output pins via the shift registers: data is shifted from the pins into the ISR, and then pushed to the RX FIFO (and the same in reverse via the OSR). Execution of PUSH, PULL, IN, and OUT instructions is handled by logic within the shift registers themselves, controlled by signalling from the execution unit. The shift registers may signal a stall to the instruction decoder if attempting to push to a full/pull from an empty FIFO.
+The primary datapath is that between the FIFOs and output pins via the shift registers: data is shifted from the pins into the ISR, and then pushed to the RX FIFO (and the same in reverse via the OSR). Execution of \txt{PUSH}, \txt{PULL}, \txt{IN}, and \txt{OUT} instructions is handled by logic within the shift registers themselves, controlled by signalling from the execution unit. The shift registers may signal a stall to the instruction decoder if attempting to push to a full/pull from an empty FIFO.
 
-The other four instructions are executed in sub-units of the execution unit. MOVE and SET instructions can read/write to any of the 5 registers, the branch unit reads registers to compute branch conditions, and the wait unit reads the pin register to conditionally signal a stall back to the instruction decoder.
+The other four instructions are executed in sub-units of the execution unit. \txt{MOVE} and \txt{SET} instructions can read/write to any of the 5 registers, the branch unit reads registers to compute branch conditions, and the wait unit reads the pin register to conditionally signal a stall back to the instruction decoder.
 
 Much of the complexity in control signalling lies in the execution unit, as the instruction decoder and program counter have to be able to handle instruction stalling and re-execution, and inserting delays into the flow of execution. The instruction decoder also directly signals side-set values to the pin register.
 
