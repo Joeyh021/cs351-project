@@ -37,6 +37,7 @@ Implementation starts from the block diagram described in Chapter \ref{ch:design
           \begin{itemize}
               \item \txt{Random} - functions for generating random Chisel \txt{UInt}s, used for testing
               \item \txt{ReadWrite} - reusable read and write port interface definitions
+              \item \txt{ClockDivider} - clock divider module
           \end{itemize}
 \end{itemize}
 
@@ -107,6 +108,8 @@ io.sideSet := Mux(sleeping, sideSetReg, sideSet)
     \label{lst:side-set}
 \end{listing}
 
+\subsection{Scratch Registers and Memory}
+
 \subsection{Shift Registers}
 
 The shift registers are fairly complex: they include logic for reading/writing from/to the FIFOs, as well as logic for shifting bits in and out. There are multiple configuration options too: shift direction, auto push/pull, shift thresholds, etc.
@@ -137,7 +140,6 @@ val thresholdReached = (shiftCountReg /+\ shiftCount) >= thresh
     \label{lst:sat_add}
 \end{listing}
 
-\subsubsection{Registers and Memory}
 
 scratch reg
 read/write ports
