@@ -137,6 +137,11 @@ val thresholdReached = (shiftCountReg /+\ shiftCount) >= thresh
     \label{lst:sat_add}
 \end{listing}
 
+\subsubsection{Registers and Memory}
+
+scratch reg
+read/write ports
+
 \subsubsection{ISR}
 
 The ISR is slightly simpler, as there are fewer implications in the interaction between a \txt{IN} instruction and autopush. An \txt{IN} instruction is similar to an \txt{OUT}: the data is shifted by N bits in the configured direction, and the N least significant bits of the input line are placed in the register (as the MSBs if shifting from the right, or LSBs if from the left).
@@ -157,10 +162,145 @@ talk about
 
 
 \subsection{Pin Mapping}
-pin mapping is way less complex: directions are fixed
-\subsection{Other Components}
-clock divider
-scratch reg
-\section{AXI Wrapper}
 
-\section{Chisel Abstractions}
+Pin mapping in RVPIO is much simplified from that of the RP2040. This is due in part to the fact that an RP2040 PIO block includes 4 state machines which share the pins via a priority mask that determines which state machine has access to which pin, whereas we only have a single state machine. The RP2040 also includes the ability for PIO programs to change the pin directions by writing data to a special `pindirs' register, instead of it being fixed by configuration registers, a feature also not present in RVPIO.
+
+The 32-bit vector that represents the physical pins on the FPGA device is both an input and an output, requiring the use of a Verilog \txt{inout} port. Chisel does not provide support for working with bi-directional or analog logic types, so the pin mapping module is instead written in Verilog and wrapped using Chisel's `Black Box' functionality. Listing \ref{lst:blackbox} shows how Chisel can wrap external Verilog code for interoperability between Chisel and Verilog, with the \txt{Pins} class usable as a regular Chisel module within other Scala code.
+
+\begin{listing}[h!]
+    \centering
+    \vspace{0.5cm}
+    \begin{minted}{scala}
+class Pins extends BlackBox with HasBlackBoxResource {
+    val io = IO(new PinsIO)
+    addResource("vsrc/Pins.v")
+}
+    \end{minted}
+    \caption{Wrapping a Verilog module from another file as a Chisel module. The \txt{PinsIO} definition is omitted for brevity.}
+    \label{lst:blackbox}
+\end{listing}
+
+The module is required to take as input the configured input and output base and count, as well as have a 32-bit input port for writing data to pins and for the side set, and 32-bit output for data read from the pins. The config inputs are used to generate a mask to place the correct input bits on the output read line, as shown in Listing \ref{lst:in-mask}.
+
+\begin{listing}[h!]
+    \vspace{0.5cm}
+    \begin{minted}{verilog}
+//generate mask
+wire [31:0] inMask  = (32'b1 << cfg_inCount)  - 32'b1; 
+wire [31:0] inputData; //data from pins
+//shift data to LSBs and mask off the number we want
+assign read = (inputData >> cfg_inBase) & inMask; 
+    \end{minted}
+    \caption{Verilog for generating read data from pins}
+    \label{lst:in-mask}
+\end{listing}
+
+For the outputs, similar logic is used, shown in Listing \ref{lst:out-mask}. The \txt{write_enable} input is high when data is to be written out to the pins, and the data sent to the module from the PIO system is masked and shifted to the correct bits of the output port before being latched into the register.
+
+\begin{listing}[h!]
+    \vspace{0.5cm}
+    \begin{minted}{verilog}
+wire [31:0] outMask = (32'b1 << cfg_outCount) - 32'b1;    
+reg  [31:0] outputData;
+always @ *
+    if(write_enable)
+        outputData = (write_data & outMask) << cfg_outBase;
+    \end{minted}
+    \caption{Verilog for generating read data from pins}
+    \label{lst:out-mask}
+\end{listing}
+
+The \txt{outputData} register is written to the \txt{inout} pins port and the \txt{inputData} wire is sampled from it. To achieve this, bidirectional tri-state buffers are used, specifically IOBUF primitives present in the FPGA device. A diagram of the IOBUF, and how it maps the inputs and outputs to the I/O pad is shown in Figure \ref{fig:iobuf}.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\textwidth]{../img/iobuf.png}
+    \begin{tabular}{|c|c|c|c|}
+        \hline
+        \multicolumn{2}{|c|}{\textbf{Inputs}} & \textbf{Outputs} & \textbf{Bidirectional}               \\\hline
+        \textbf{T}                            & \textbf{I}       & \textbf{O}             & \textbf{IO} \\\hline
+        1                                     & X                & IO                     & Z           \\\hline
+        0                                     & 1                & 1                      & 1           \\\hline
+        0                                     & 0                & 0                      & 0           \\\hline
+    \end{tabular}
+    \caption{Xilinx IOBUF primitive \cite{vivado_libs}}
+    \label{fig:iobuf}
+\end{figure}
+
+Xilinx provides Verilog macros for using primitives \cite{vivado_libs}. 31 single-bit IOBUFs are used in the design, instantiated within a generative for loop as shown in Listing \ref{lst:iobuf}, with the \txt{outputEnables} mask generated from the output config register. Pin 32 is always the side-set pin, so the most significant bit of the 32-bit output register is always disregarded, and the most significant 32-bit of the input wire is always 0.
+
+\begin{listing}[h!]
+    \vspace{0.5cm}
+    \begin{minted}{verilog}
+for(genvar i = 0; i < 31; i = i+1) begin
+IOBUF #( 
+    // output drive strength in mA
+    .DRIVE(12), 
+    // low Power - "TRUE", high Performance = "FALSE"
+    .IBUF_LOW_PWR("TRUE"),  
+    // I/O standard from constraints
+    .IOSTANDARD("LVCMOS33"),
+    //output slew rate 
+    .SLEW("SLOW") 
+) IOBUF_inst (
+     // Buffer output (module data input)
+    .O(inputData[i]),
+    // Buffer inout port (module pins inout)     
+    .IO(pins[i]),   
+    // Buffer input (module data output)
+    .I(outputData[i]),     
+    // 3-state enable input, high=input, low=output
+    .T(!outputEnables[i])     
+);
+end
+    \end{minted}
+    \caption{Instantiating IOBUFs in a loop in Verilog using Xilinx macros\cite{vivado_libs}}
+    \label{lst:iobuf}
+\end{listing}
+
+\subsection{Clock Divider}
+
+The clock divider was another module that had to be written in Verilog. FIRRTL does not provide support for generating clock dividers or clock multiplexers \footnote{\url{https://github.com/chipsalliance/firrtl/issues/540}} due to the special treatment clock signals get within Chisel and FIRRTL. The module takes the 16-bit divisor value and an input clock, and outputs a slowed clock. Listing \ref{lst:clockdiv} shows the black box module. Note now \txt{Clock} is it's own distinct type within Chisel.
+
+\begin{listing}[h!]
+    \centering
+    \vspace{0.5cm}
+    \begin{minted}{scala}
+class ClockDivider extends BlackBox with HasBlackBoxResource {
+    val io = IO(new Bundle {
+        val clock   = Input(Clock())
+        val divisor = Input(UInt(16.W))
+        val outClk  = Output(Clock())
+    })
+    addResource("vsrc/ClockDivider.v")
+}
+    \end{minted}
+    \caption{The \txt{ClockDivider} black box module definition.}
+    \label{lst:clockdiv}
+\end{listing}
+
+A companion object is used for the clock divider to enable functional module creation. Companion objects in Scala are objects declared in the same file as a class with the same name, and allow to add static methods and factory methods to the class. The \txt{apply} method is a special method in Scala that is used when calling an object like a method: \txt{Class(foo)} desugars to \txt{Class.apply(foo)}.
+
+In Chisel, this allows to add ways to instantiate modules that are more intuitive and readable hardware descriptions using the way Scala evaluates expressions. Listing \ref{lst:clockdiv2} shows the \txt{ClockDivider} companion object and it's \txt{apply} method, along with an example usage. The method returns the \txt{clkdiv.io.outClk}, meaning that in the example line below the \txt{slowClock} is the output of the clock divider. A similar technique is used to provide the \txt{Mux} and \txt{RegEnable} objects from Chisel's standard library shown in Lising \ref{lst:side-set}.
+
+\begin{listing}[h!]
+    \centering
+    \vspace{0.5cm}
+    \begin{minted}{scala}
+object ClockDivider {
+    def apply(divisor: UInt, clock: Clock): Clock = {
+        val clkdiv = Module(new ClockDivider)
+        clkdiv.io.clock := clock
+        clkdiv.io.divisor := divisor
+        clkdiv.io.outClk
+    }
+}
+//example usage
+val slowClock = ClockDivider(divisor, fastClock)
+    \end{minted}
+    \caption{The \txt{ClockDivider} companion object and example usage}
+    \label{lst:clockdiv2}
+\end{listing}
+
+
+\section{AXI Wrapper}
