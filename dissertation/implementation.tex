@@ -51,6 +51,81 @@ Some files contain one (or more) Chisel modules, while others contain bundle def
 \end{figure}
 
 \section{PIO Components}
+
+\subsection{Scratch Registers and Memory}
+
+Chisel's abstractions for memories are given special treatment within FIRRTL and the compiler due to the number of ways that RAMs may be synthesised within FPGAs and ASICs. Two main abstractions exist for representing memories: the \txt{Mem} and \txt{SyncReadMem} classes. Both are synchronous-write, but the former is combinational-read while the latter is synchronous-read. Within an FPGA, \txt{Mem} typically synthesises to distributed LUTRAM, while \txt{SyncReadMem} synthesises to a block RAM.
+
+The instruction memory is a wrapper around a 32x16-bit \txt{Mem}, with separately addressable read and write ports. The instruction memory has to be combinational-read such that instructions can be fetched and executed in a single cycle.
+
+The scratch registers use Chisel's \txt{RegInit} class, which is a simple positive edge-triggered sequential logic element with an explicit reset value. Listing \ref{lst:scratch} shows the entire scratch register module: \txt{io.read} is driven by the register's output, and the \txt{io.write} value is put into the register when \txt{io.write.enable} is high.
+
+\begin{listing}[h!]
+    \vspace{0.5cm}
+    \begin{minted}{scala}
+class ScratchReg extends Module {
+    val io = IO(ReadWrite(UInt(32.W)))
+    
+    val reg = RegInit(0.U)
+    io.read := reg
+    when(io.write.enable) {
+        reg := io.write.data
+    }
+}
+    \end{minted}
+    \caption{The PIO scratch registers}
+    \label{lst:scratch}
+\end{listing}
+
+The \txt{ReadWrite} bundle is a re-usable generic bundle definition defined within the project for use as a read/write interface. Other bundles may use it via either composition or inheritance, and the re-use of it as an abstraction accross different modules allows for easy interoperability. Listing \ref{lst:readwrite} shows how the bundles are defined. The generic parameter \txt{D <: Data} means the bundle is parametrised over any subclass of Chisel's \txt{Data} class, the root of the type hierarchy for all hardwar types. This allows it to be re-used for reading/writing any type, for example a 32-bit \txt{UInt} as shown in Lising \ref{lst:scratch}.
+
+\begin{listing}[h!]
+    \vspace{0.5cm}
+    \begin{minted}{scala}
+class Write[D <: Data](d: D) extends Bundle {
+    val enable = Input(Bool())
+    val data   = Input(d)
+}
+
+class ReadWrite[D <: Data](d: D) extends Bundle {
+    val read  = Output(d)
+    val write = new Write(d)
+}
+    \end{minted}
+    \caption{The PIO scratch registers}
+    \label{lst:readwrite}
+\end{listing}
+
+Chisel's monodirectional \txt{:=} and bidirectional \txt{<>} connection operators make use of bundle classes as abstractions, allowing to make multiple port connections at once by recursively traversing all nested bundles. Listing \ref{lst:connection} shows an example: the execution unit module has read inputs and write output connections to both the X and Y scratch register modules. By defining the execution unit's I/O bundle using \txt{ReadWrite} bundles and the \txt{Flipped} object (which reverses the direction of all inputs/outputs in a bundle definition), it is easy to make all connections in one line.
+
+\begin{listing}[h!]
+    \vspace{0.5cm}
+    \begin{minted}{scala}
+class ExecUnitIO extends Bundle {
+    val x    = Flipped(ReadWrite(UInt(32.W)))
+    val y    = Flipped(ReadWrite(UInt(32.W)))
+    //other ports...          
+}
+
+class ExecUnit extends Module {
+    val io = IO(new ExecUnitIO)
+    //the rest of the module...
+}
+
+class PIO extends Module {
+    val xReg = Module(new ScratchReg)
+    val yReg = Module(new ScratchReg)
+    val execUnit = Module(new ExecUnit)
+
+    //connect entire bundle in one go
+    execUnit.io.x <> xReg.io
+    execUnit.io.y <> yReg.io
+}
+    \end{minted}
+    \caption{The PIO scratch registers}
+    \label{lst:connection}
+\end{listing}
+
 \subsection{Execution Unit}
 
 The top-level execution unit wraps the decoder containing most of the logic with the three sub-execution units, which mostly contain very little logic and are wrapped as modules purely for hierarchical abstraction purposes. The module has read/write connections to all of the registers, which are all connected internally to the move module, which is just a big multiplexer between all the registers. The branch register also reads and writes from the registers, as the instruction set includes \txt{x++} and \txt{y++} as branch conditions, meaning that the execution unit includes logic to multiplex writes between those two units to the single write connection to the register.
@@ -108,7 +183,7 @@ io.sideSet := Mux(sleeping, sideSetReg, sideSet)
     \label{lst:side-set}
 \end{listing}
 
-\subsection{Scratch Registers and Memory}
+
 
 \subsection{Shift Registers}
 
@@ -262,7 +337,7 @@ end
 
 \subsection{Clock Divider}
 
-The clock divider was another module that had to be written in Verilog. FIRRTL does not provide support for generating clock dividers or clock multiplexers \footnote{\url{https://github.com/chipsalliance/firrtl/issues/540}} due to the special treatment clock signals get within Chisel and FIRRTL. The module takes the 16-bit divisor value and an input clock, and outputs a slowed clock. Listing \ref{lst:clockdiv} shows the black box module. Note now \txt{Clock} is it's own distinct type within Chisel.
+The clock divider was another module that had to be written in Verilog. FIRRTL does not provide support for generating clock dividers or clock multiplexers \footnote{\url{https://github.com/chipsalliance/firrtl/issues/540}} due to the special treatment clock signals get within Chisel and FIRRTL. The module takes the 16-bit divisor value and an input clock, and outputs a slowed clock. Listing \ref{lst:clockdiv} shows the black box module. Note how \txt{Clock} is it's own distinct type within Chisel, distinct from \txt{Bool}.
 
 \begin{listing}[h!]
     \centering
@@ -281,7 +356,7 @@ class ClockDivider extends BlackBox with HasBlackBoxResource {
     \label{lst:clockdiv}
 \end{listing}
 
-A companion object is used for the clock divider to enable functional module creation. Companion objects in Scala are objects declared in the same file as a class with the same name, and allow to add static methods and factory methods to the class. The \txt{apply} method is a special method in Scala that is used when calling an object like a method: \txt{Class(foo)} desugars to \txt{Class.apply(foo)}.
+A companion object is used for the clock divider to enable functional module creation. Companion objects in Scala are objects declared in the same file as the class of the same name, and allow to add static methods and factory methods to the class. The \txt{apply} method is a special method in Scala that is used when calling an object like a method: \txt{Foo(bar)} desugars to \txt{Foo.apply(bar)}.
 
 In Chisel, this allows to add ways to instantiate modules that are more intuitive and readable hardware descriptions using the way Scala evaluates expressions. Listing \ref{lst:clockdiv2} shows the \txt{ClockDivider} companion object and it's \txt{apply} method, along with an example usage. The method returns the \txt{clkdiv.io.outClk}, meaning that in the example line below the \txt{slowClock} is the output of the clock divider. A similar technique is used to provide the \txt{Mux} and \txt{RegEnable} objects from Chisel's standard library shown in Lising \ref{lst:side-set}.
 
