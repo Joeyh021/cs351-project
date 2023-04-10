@@ -233,16 +233,103 @@ A push may happen in parallel with a shift due to autopush if autopush is enable
 
 \subsection{FIFOs}
 
-The FIFOs are capable of storing up to 4 32-bit words, and buffer data between the PIO system and the rest of the SoC. The complexity in the FIFOs lies in the fact that the PIO and the SoC may operate in different clock domains, meaning the FIFOs must be asynchronous.
+The FIFOs are capable of storing up to 4 32-bit words, and buffer data between the PIO system and the rest of the SoC. The complexity in the FIFOs lies in the fact that the PIO and the SoC operate in different clock domains, meaning the FIFOs must be asynchronous.
 
-discussion of metastability
+Using the TX FIFO as an example, the write end of the FIFO that data is queued into operates within the SoC clock domain, while the read end is within the PIO clock domain. We have to ensure that data consumed by the PIO is \textit{stable} when it is read. This leads to the issue of \textit{metastability}, a term that refers to signals which `do not assume stable 0 or 1 states for some duration of time at
+some point during normal operation of a design' \cite{cdc}. Appropriate synchronisation techniques are required to ensure that FIFO data is valid when read.
 
-design ripped from paper
+The asynchronous FIFO design we use from the paper `Simulation and Synthesis Techniques for Asynchronous
+FIFO Design' by Cummings \cite{fifo1}. Two designs are published, one by Cummings in \cite{fifo1} and another that builds upon the first by Cummings \& Alfke in \cite{fifo2}, both detailing asynchronous FIFO designs with full Verilog source lisings. We utilise the first one and translate the code from Verilog to Chisel, as the FIFO design described is able to be constructed within the constraints imposed by Chisel's implicit clocking model.
 
-show diagram
+The way the FIFOs work is using a read and a write pointer that index into a shared memory and are used to detect if the FIFO is full or empty. The (TX FIFO) read pointer exists in the PIO clock domain and the write pointer in the SoC clock domain. To signal to the PIO that the FIFO is empty, or to the SoC that the FIFO is full, each pointer must be synchronised into the other domain to generate the full/empty signals.
 
-talk about
+Using binary counters in asynchronous FIFO designs can cause issues, as an increment can cause multiple signals to change (ie, 7 to 8 is 0111 to 1000). To overcome this, Gray code counters are used, where neighbouring numbers only differ by a single binary digit, which overcomes issues with synchronising multiple simultaneous signal changes accross clock domains.
 
+Possibly the simplest synchronisation technique is used: the two flip-flop synchroniser. The way this works is using two flip flops both clocked in the domain that the signal is being synchronised into. The first flip-flop samples the input signal into the new clock domain and adds a cycle of delay to allow any metastability to decay. The second flip-flop samples from the first, with the idea that the output of the second one is a stable and valid signal \cite{cdc}. The circuit is shown in Figure \ref{fig:2ff}, and the (very succinct) chisel implementation is given in Listing \ref{lst:2ff}.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{../img/2ff.png}
+    \caption{A 2 flip-flop synchroniser \cite{cdc}.}
+    \label{fig:2ff}
+\end{figure}
+
+\begin{listing}[h!]
+    \vspace{0.5cm}
+    \begin{minted}{scala}
+object Synchroniser {
+    def apply(input: UInt) = RegNext(RegNext(inputPointer))
+}        
+    \end{minted}
+    \caption{Chisel code implementing a 2 flip-flop synchroniser using \txt{RegNext} objects.}
+    \label{lst:2ff}
+\end{listing}
+
+There is a control module in both the read and write clock domains to generate the read/write Gray code pointer, read/write address (in binary) and empty/full signals. The write control module takes as input the read pointer synchronised into the writer clock domain and the \txt{doWrite} input signal. It computes the write address in binary, the write Gray code pointer, and asserts the \txt{full} output if necessary. The converse exists for the read side of the FIFO.
+
+The top-level module has a clock and reset input for either side, as well as a producer/consumer IO bundle, shown in Listing \ref{lst:fifobundles}. The FIFO module is a Chisel \txt{RawModule}, meaning it does not have an implicit clock or reset and does not exist in any clock domain by default. Instead, \txt{withClockAndReset} helper objects are used to explicitly declare clock domains for either side of the FIFO, within which the control and synchronisation modules for either side are generated, shown in Listing \ref{lst:fifo}.
+
+\begin{listing}[h!]
+    \vspace{0.5cm}
+    \begin{minted}{scala}
+// a producer writes to the FIFO
+class ProducerIO extends Bundle {
+    val write   = Input(UInt(32.W))
+    val doWrite = Input(Bool())
+    val full    = Output(Bool())
+}
+
+// a consumer reads from the FIFO
+class ConsumerIO extends Bundle {
+  val read   = Output(UInt(32.W))
+  val doRead = Input(Bool())
+  val empty  = Output(Bool())
+}
+
+class AsyncFifoIO extends Bundle {
+  val producerClock = Input(Clock())
+  val producerReset = Input(Reset())
+  val producer      = new ProducerIO
+
+  val consumerClock = Input(Clock())
+  val consumerReset = Input(Reset())
+  val consumer      = new ConsumerIO
+}
+    \end{minted}
+    \caption{FIFO interface bundles.}
+    \label{lst:fifobundles}
+\end{listing}
+
+
+\begin{listing}[h!]
+    \vspace{0.5cm}
+    \begin{minted}{scala}
+class AsyncFifo extends RawModule {
+    val io = IO(new AsyncFifoIO)
+    
+    // shared wires that are used in both domains
+    val readAddress  = Wire(UInt(2.W))
+    val writeAddress = Wire(UInt(2.W))
+    val readPointer  = Wire(UInt(3.W))
+    val writePointer = Wire(UInt(3.W))
+    
+    val mem = Mem(4, UInt(32.W))
+    
+    withClockAndReset(io.producerClock, io.producerReset) {
+        val write = Module(new WritePointer)
+        // write connections and logic logic ...
+    }
+    
+    //read clock domain (consumer)
+    withClockAndReset(io.consumerClock, io.consumerReset) {
+        val read = Module(new ReadPointer)
+        // read connections and logic ...
+    }
+}
+    \end{minted}
+    \caption{FIFO interface bundles.}
+    \label{lst:fifo}
+\end{listing}
 
 \subsection{Pin Mapping}
 
