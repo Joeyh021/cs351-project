@@ -1,8 +1,12 @@
 \chapter{Implementation}
 \label{ch:implementation}
 
-\section{HDL structure}
-Implementation starts from the block diagram described in Chapter \ref{ch:design}, moving from that to laying out the HDL skeleton within Scala. Both Chisel bundles (collections of inputs and outputs used to define interfaces) and Chisel modules are Scala classes, so the layout of the code follows a standard Java/Scala package layout \cite{scala_style}. The top-level package is \txt{dev.joeyh.pio} (the author's domain is \txt{joeyh.dev}), containing the top-level \txt{PIO} module class, and the following sub-packages and files
+\section{Code Structure \& HDL Hierarchy}
+Implementation starts from the block diagram described in Chapter \ref{ch:design}, moving from that to laying out the HDL skeleton within Scala.
+
+Chisel modules are Scala classes, which allows to use existing standard Scala practices in structuring and developing the code. The code is structured as an sbt project, using a standard Java/Scala package layout \cite{scala_style}. sbt is the industry standard build tool for Scala, providing a DSL for describing the structure and dependencies of the project in the \txt{build.sbt} file, and a command line interface for building, running, and testing the project \cite{sbt}. The sbt template used is one available on GitHub as the standard Chisel sbt template \footnote{\url{https://github.com/freechipsproject/chisel-template}}.
+
+The top-level package is \txt{dev.joeyh.pio} (the author's domain is \txt{joeyh.dev}), containing the following sub-modules and files:
 
 \begin{itemize}
     \item \txt{execution} - The execution unit and sub-components
@@ -41,13 +45,15 @@ Implementation starts from the block diagram described in Chapter \ref{ch:design
           \end{itemize}
 \end{itemize}
 
-Some files contain one (or more) Chisel modules, while others contain bundle definitions that are designed to be reused accross multiple modules. Bundles as types is a great feature of Chisel, as it allows to abstract over them using the connection operators. The module hierarchy of the overall design from this is fairly flat, shown in Figure \ref{fig:hdl_hierarchy}.
+Some files contain one (or more) Chisel modules, while others contain bundle definitions that are designed to be reused accross multiple modules, and others just contain miscellaneous utility or helper objects. The HDL module hierarchy of the overall design from this is fairly flat, shown in Figure \ref {fig:hdl_hierarchy}.
 
 \begin{figure}[H]
     \centering
     \caption{The modular, hierarchical design of the PIO.}
     \label{fig:hdl_hierarchy}
 \end{figure}
+
+Two verilog source files are also included, placed in the \txt{/resources} folder of the project such that they are on the classpath of the project and can be loaded as resources by Scala \cite{sbt}.
 
 \section{PIO Components}
 
