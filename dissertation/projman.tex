@@ -1,5 +1,34 @@
 \chapter{Project Management}
+
+In this chapter we describe the methodology and tools used to undertake the project.
+
 \section{Methodology}
+The project is very practical, with much of the time spent writing and testing HDL code. As such, an appropriate engineering methodology is employed.
+
+Our high-level approach is very plan based: we start with the design outlined in Chapter \ref{ch:design}, detailing the instruction set and then block design of the PIO device. Having a detailed design on paper before any code is written has it's advantages: the design is well documented, and allows to focus on the implementation details of each module while writing code instead of worrying about higher level architectural details.
+
+Implementation begins with taking the block design in Chapter \ref{ch:design}, identifying relevant HDL modules, and building a skeleton Scala project with all the Chisel modules required, as detailed in Chapter \ref{ch:implementation}. Once this structure is in place, we implement the modules one at a time, testing each as we go. Any iteration on the high level block design required going back
+
+On a high level this is a very structured methodology. waterfall, etc. Good for a complex design and makes easy to document
+
+However, on a module level very agile, extreme programming, test driven development, etc. Easy with a small development team with no external stakeholders.
+
 \section{Schedule}
+Project started, original timeline in appendix
+actual timeline given in table 
+due to xyz restrictions
+tasks and timing used kaban board 
 \section{Source Control}
+git 
+github 
+CI
+
+
 \section{Tools \& Resources}
+git&github
+scalac
+sbt
+chisel libraries
+vivado
+ubuntu workstation
+fpga board
