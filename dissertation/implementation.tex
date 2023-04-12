@@ -2,7 +2,7 @@
 \label{ch:implementation}
 
 \section{Code Structure \& HDL Hierarchy}
-Implementation starts from the block diagram described in Chapter \ref{ch:design}, moving from that to laying out the HDL skeleton within Scala.
+Implementation starts from the block diagram described in Chapter \ref{ch:design}, transitioning from the high-level design to laying out the HDL blocks within a skeleton Scala project.
 
 Chisel modules are Scala classes, which allows to use existing standard Scala practices in structuring and developing the code. The code is structured as an sbt project, using a standard Java/Scala package layout \cite{scala_style}. sbt is the industry standard build tool for Scala, providing a DSL for describing the structure and dependencies of the project in the \txt{build.sbt} file, and a command line interface for building, running, and testing the project \cite{sbt}. The sbt template used is one available on GitHub as the standard Chisel sbt template \footnote{\url{https://github.com/freechipsproject/chisel-template}}.
 
@@ -115,7 +115,7 @@ class ExecUnitIO extends Bundle {
 
 class ExecUnit extends Module {
     val io = IO(new ExecUnitIO)
-    //the rest of the module...
+    //the module's implementation logic...
 }
 
 class PIO extends Module {
@@ -136,11 +136,11 @@ class PIO extends Module {
 
 The top-level execution unit wraps the decoder containing most of the logic with the three sub-execution units, which mostly contain very little logic and are wrapped as modules purely for hierarchical abstraction purposes. The module has read/write connections to all of the registers, which are all connected internally to the move module, which is just a big multiplexer between all the registers. The branch register also reads and writes from the registers, as the instruction set includes \txt{x++} and \txt{y++} as branch conditions, meaning that the execution unit includes logic to multiplex writes between those two units to the single write connection to the register.
 
-The 5-bit program counter is also a sub-module of the execution unit. It's output is connected to the instruction memory's address input, and it is able to have a value written by the branch module. It automatically increments each cycle while it's \txt{incrementEnable} input line is high, which allows the instruction decoder to control it to implement delays and stalls.
+The 5-bit program counter is also a sub-module of the execution unit. It's output is connected to the instruction memory's address input, and it is able to have a value written by the branch module. It automatically increments each cycle while the \txt{incrementEnable} input line is high, which allows the instruction decoder to control it to implement delays and stalls.
 
 \subsubsection{Instruction Decoder}
 
-The implementation of the execution unit starts with the instruction decoder, which takes as input the instruction to be decoded, and asserts all the control signals required to execute that instruction. Most of the logic of the decoder is a series of \txt{when}/\txt{otherwise} statements, which are Chisel's equivalent of a behavioural \txt{if}/\txt{else} in Verilog. Listing \ref{lst:decoder} gives an example, where the first block is executed when the opcode is 0 to output the signals to the branch unit otherwise the outputs are all driven low. The mono-directional connection operator \txt{:=} is used to drive the outputs conditionally.
+The implementation of the execution unit starts with the instruction decoder, which takes as input the instruction to be decoded, and asserts all the control signals required to execute that instruction. Most of the logic of the decoder is a series of \txt{when}/\txt{otherwise} statements, which are Chisel's equivalent of a behavioural \txt{if}/\txt{else} in Verilog. Listing \ref{lst:decoder} gives an example: the first block is executed when the opcode is 0 to output the signals to the branch unit, otherwise the outputs are all driven low by the second block. This construct is repeated for each instruction instead of using a single switch statement, as it isolates the logic for each opcode, and prevents the repetition that would be required to drive every signal low on each case. The mono-directional connection operator \txt{:=} is used to drive the outputs conditionally.
 
 \begin{listing}[h!]
     \vspace{0.5cm}
@@ -193,7 +193,7 @@ io.sideSet := Mux(sleeping, sideSetReg, sideSet)
 
 \subsection{Shift Registers}
 
-The shift registers are fairly complex: they include logic for reading/writing from/to the FIFOs, as well as logic for shifting bits in and out. There are multiple configuration options too: shift direction, auto push/pull, shift thresholds, etc.
+The two shift registers, input and output, are fairly complex: they include logic for reading/writing from/to the FIFOs, as well as logic for shifting bits in and out. There are multiple configuration options too: shift direction, auto push/pull, shift thresholds, etc.
 
 
 \subsubsection{OSR}
@@ -206,7 +206,7 @@ If an \txt{OUT} instruction is issued, autopull is enabled, and the OSR is empty
 
 \txt{MOVE} or \txt{SET} instructions may also read/write from the OSR. A read doesn't have any effect on the OSR or FIFO state, but a write to the OSR causes the shift count register to be reset to 0, indicating it has refilled.
 
-This logic is implemented as a lot of chained/nested \txt{when}/\txt{otherwise} blocks, which makes for not the cleanest code, but is the best way to represent the necessary logic. The shift counter value saturates at 32, which can be tricky to work with and hard to consistently get right, so a custom saturating addition operator \txt{+!} is used to perform the threshold checks and increments. Examples is shown in Listing \ref{lst:sat_add}.
+This logic is implemented as a lot of chained/nested \txt{when}/\txt{otherwise} blocks, which makes for not the cleanest code and synthesises to a large multiplexer, but is the best way to represent the necessary logic. The shift counter value saturates at 32, which can be tricky to work with and hard to consistently get right, so a custom saturating addition operator \txt{+!} is used to perform the threshold checks and increments. Examples is shown in Listing \ref{lst:sat_add}.
 
 
 \begin{listing}[h!]

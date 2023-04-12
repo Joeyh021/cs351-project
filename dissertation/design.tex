@@ -27,7 +27,7 @@ The design of the PIO starts with the assembly language which it executes. We re
     \label{tab:pioasm}
 \end{table}
 
-Our version of pioasm is much simplified from this: the number of instructions is reduced from 9 to 8, some of the flags are removed, and much of the functionality of the instructions that is configurable via registers is instead fixed. These restrictions are necessary to simplify the design such that it can be implemented within a realistic timeframe. Our PIO instruction set, referred to as RVPIO (RISC-V PIO) from here on, is given in table \ref{tab:rvpioasm}, and details of the changes between the two are given below.
+Our version of pioasm is much simplified from this: the number of instructions is reduced from 9 to 8, some of the flags are removed, and much of the functionality of the instructions that is configurable via registers is instead fixed. These restrictions are necessary to simplify the design such that it can be implemented within a realistic timeframe. Our PIO instruction set, referred to as RVPIO (RISC-V PIO) from here on, is shown in table \ref{tab:rvpioasm} as a proof of concept, and details of the changes between the two are given below.
 
 \begin{itemize}
     \item The \txt{IRQ} instruction is removed. This is to simplify integration of the PIO into the SoC: handling interrupts in either direction is a very involved process on both the hardware and software level and is left out of scope for this project.

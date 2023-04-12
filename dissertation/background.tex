@@ -8,7 +8,7 @@ In this section we introduce the background necessary to understand the context 
 
 Interfacing between digital components is hard due to high speed and precision timing requirements, and is a problem continually explored by electronics engineers.
 
-In consumer electronics the USB interface is very common, and devices include hardware USB controllers to handle the timing and signalling required to understand each other properly. On a desktop or laptop computer other interfaces such as SATA and PCIe can be found, which handle communication with internal peripherals such as hard drives and expansion cards like GPUs. Performance and timing accuracy is key in such applications, as consumers want their systems to be responsive and reliable. Dedicated interface hardware that is specialised for each protocol is standard in consumer systems, as it allows the CPU to continue to perform other tasks while I/O happens in the background. Communicaton between the CPU and I/O hardware usually happens via interrupts, shared memory, and/or DMA, all coordinated by system software usually within an OS kernel.
+In consumer electronics the USB interface is common, and devices include hardware USB controllers to handle the timing and signalling required to understand each other properly. On a desktop or laptop computer other interfaces such as SATA and PCIe can be found, which handle communication with internal peripherals such as hard drives and expansion cards like GPUs. Performance and timing accuracy is key in such applications, as consumers want their systems to be responsive and reliable. Dedicated interface hardware that is specialised for each protocol is standard in consumer systems, as it allows the CPU to continue to perform other tasks while I/O happens in the background. Communicaton between the CPU and I/O hardware usually happens via interrupts, shared memory, and/or DMA, all coordinated by system software usually within an OS kernel.
 
 Microcontrollers and embedded systems are a similar story, except you're less likely to find a SATA interface on an MCU: interfaces such as SPI, UART, I\textsuperscript{2}C, PWM and CAN are more common, along with GPIO pins. These interfaces are more general-purpose, and designed for use with other electronic components rather than consumer hardware. They're also are a lot simpler than the likes of PCIe, and easy to implement into a small microcontroller fairly cheaply \cite{rp2040}.
 
@@ -31,7 +31,7 @@ Embedded systems including FPGAs are not uncommon for high-performance or highly
 
 
 \section{The RP2040 and PIO}
-Raspberry Pi acknowledge all these issues in their introduction to the RP2040's PIO in their documentation, pitching it as a way to add additional hardware interfaces to a device without the drawbacks of bit-banging or programmable logic. PIO is fixed-function hardware included in the RP2040 with a similar power draw and chip area utilisation to a typical hardware interface, built to operate with cycle-accuracy and determinism at up to 48MHz (the system clock speed), allowing it to meet the timing requirements necessary for many high-speed serial interfaces.
+Raspberry Pi acknowledge the issues mentioned in Chapter \ref{ch:introduction} and Section \ref{sec:embedded-interfaces} in their introduction to the RP2040's PIO in their documentation, pitching it as a way to add additional hardware interfaces to a device without the drawbacks of bit-banging or programmable logic. PIO is fixed-function hardware included in the RP2040 with a similar power draw and chip area utilisation to a typical embedded hardware interface such as a UART or SPI controller, built to operate with cycle-accuracy and determinism at up to 48MHz (the system clock speed), allowing it to meet the timing requirements necessary for many high-speed serial interfaces \cite{rp2040}.
 
 Figure \ref{fig:pio-sm} gives an overview of one of the PIO state machines. Included in each one are two 32-bit shift registers, two 32-bit scratch registers, a clock divider, flexible GPIO pin mapping, and 2 4x32-bit FIFOs connected to the system bus. Each PIO block includes 4 state machines, each capable of executing independently. The architecture is designed to perform a small set of operations, primarily setting/clearing GPIO pins, and moving data to/from the processor (optionally using the DMA subsystem) \cite{rp2040}.
 
@@ -44,7 +44,7 @@ Figure \ref{fig:pio-sm} gives an overview of one of the PIO state machines. Incl
 
 The flexibility and power of the PIO blocks allow them to be programmed to implement common interfaces such as UART and SPI, more complex interfaces such as DVI and SDIO, and even custom interfaces to enable tight integration with other external hardware bespoke embedded systems.
 
-The RP2040 PIO is programmable via a small assembly-like DSL called pioasm. It contains only 9 instructions, each executed within a single clock cycle. The instruction set is very dense: the PIO is capable of sampling a GPIO pin, toggling an output clock, and pushing a data word to the system all with a single instruction. An small example program is shown in Listing \ref{lst:sqwave} that outputs a square wave on a single GPIO pin.
+The RP2040 PIO is programmable via a small assembly-like language called PIO assembly, or pioasm. It contains only 9 instructions, each executed within a single clock cycle. The instruction set is very dense: the PIO is capable of sampling a GPIO pin, toggling an output clock, and pushing a data word to the system all with a single instruction. An small example program is shown in Listing \ref{lst:sqwave} that outputs a square wave on a single GPIO pin.
 
 \begin{listing}[b]
     \vspace{0.5cm}
@@ -68,21 +68,34 @@ The idea of offloading I/O to a coprocessor is not novel. We explore two other d
 
 The Time Processor Unit (TPU) is a coprocessing subsystem found in some older Motorola microcontrollers \cite{tpu}, built upon by the Enhanced TPU (eTPU) in NXP Semiconductor's MCF523x family of microcontrollers built on the ColdFire architecture \cite{mfcdatasheet}.
 
-The eTPU is a real-time microprocessed system, designed to run microengine code on a built-in RISC processor to respond to events triggered by either internal timers, interrupts, or I/O transitions. Each eTPU engine consists of 32 channels, each with an input and output, and containing logic to listen for up to 4 events. Channels can be independently configured to perform functions such as output generation, input capture, or a combination of the two.
+The eTPU is a real-time microprocessed system, designed to run microengine code on a built-in RISC processor to respond to events triggered by either internal timers, interrupts, or I/O transitions. Each eTPU engine consists of 32 channels, each with an input and output, and containing logic to listen for up to 4 events. Channels can be independently configured to perform functions such as output generation, input capture, or a combination of the two. The eTPU is designed for control of system timing operations and for I/O control. It is capable of implementing UART and SPI, as well as more specialised protocols for motor control and automotive applications.
 
 Communication between the eTPU and host CPU happens via a shared RAM, which can be used for data transfer between the two, and as storage for eTPU microcode programs. The CPU configures the eTPU by writing to the relevant configuration registers within the system's address space, and can configure each channel mode and priority independently \cite{etpu}.
 
-The event-driven architecture differs from that of the RP2040's PIO, in that timing is decoupled from the microcode execution: code is executed in response to an event, rather than the timing being built in to the execution of the code. However, the guarantees provided by the hardware around event response latency and the nature of microcode execution within the TPU means it can meet the timing requirements necessary for interfaces such as UART. This architecture does provide less flexibility however, and it is not able to implement more complex protocols. The eTPU's included RISC processor does mean it presents a more familiar programming model than the RP2040's state machines to software engineers, and provides a much broader set of operations.
+The event-driven architecture differs from that of the RP2040's PIO, in that timing is decoupled from the microcode execution: code is executed in response to an event, rather than the timing being built in to the execution of the code. However, the guarantees provided by the hardware around event response latency and the nature of microcode execution within the TPU means it can meet the timing requirements necessary for interfaces such as UART. The eTPU's included RISC processor means it presents a more familiar programming model than the RP2040's state machines to software engineers, and provides a much broader set of operations.
 
 \subsection{ESP-32 Ultra Low Power Coprocessor}
 
 The ESP-32 contains an ultra-low power coprocessor (ULP) that can remain powered on when the rest of the SoC is in deep sleep mode. The ULP is a finite state machine can execute a program from it's own memory that is capable of accessing peripheral devices and internal sensors, and communicating via I\textsuperscript{2}C. It can wake the CPU and send interrupts to the host system, as well as control it's own sleep state. It can communicate with the rest of the SoC via a shared memory that can be read/written by the ULP while the rest of the SoC is in deep sleep. It can be started directly by software on the host system, or by a hardware timer triggered periodically.
 
-The ULP is also based around a state machine like the RP2040, and programmable using assembly. However, the ULP's assembly language is much more featured than the PIO, with a full ALU and support for load/store operations to a shared system memory similar to the eTPU. The ULP is also programmable via a set of macros in C, which makes it much more accessible than the RP2040 and eTPU.
-
-Unlike PIO and the eTPU, the ULP is not designed to implement arbitrary I/O protocols, instead acting as a co-processor that has access to only I\textsuperscript{2}C, ADC and GPIO interface hardware. Instead, it's purpose is to offload I/O functions from the CPU to save power. Given the ESP32 positioning itself as an IoT microcontroller, this makes sense, as IoT devices often want to consume as little power as possible \cite{esp32}.
+The ULP is also based around a state machine like the RP2040, and programmable using assembly. However, the ULP's assembly language is much more featured than the PIO, with a full ALU and support for load/store operations to a shared system memory similar to the eTPU. The ULP is also programmable via a set of macros in C, which makes it much more accessible than the RP2040 and eTPU. Unlike PIO and the eTPU, the ULP is not designed to implement arbitrary I/O protocols, instead acting as a co-processor that has access to only I\textsuperscript{2}C, ADC and GPIO interface hardware. Instead, it's purpose is to offload I/O functions from the CPU to save power. Given the ESP32 positioning itself as an IoT microcontroller, this makes sense, as IoT devices often want to consume as little power as possible \cite{esp32}.
 
 Despite this, the idea of an I/O-focused coprocessor designed to operate in ultra-low power states is powerful. IoT devices often operate on tightly contstrained power budgets, and as battery-powered embedded systems become more prevalent in applications such as wearables and wireless devices, the need for I/O at low power is evident.
+
+
+\begin{table}[h!]
+    \centering
+    \begin{tabular}{|p{0.2\linewidth}|p{0.2\linewidth}|p{0.25\linewidth}|p{0.25\linewidth}|}
+        \hline
+        \textbf{Device}            & \textbf{PIO}         & \textbf{eTPU}                 & \textbf{ULP}                         \\ \hline
+        \textbf{Programming model} & Specialised assembly & RISC assembly                 & Specialised assembly or C/C++ macros \\ \hline
+        \textbf{Architecture}      & State machine        & Event-driven, RISC processor  & State machine                        \\ \hline
+        \textbf{Purpose}           & Arbitrary I/O        & Timing control, arbitrary I/O & Low power IoT functions              \\ \hline
+        \textbf{Flexibility}       & High                 & Medium                        & Low                                  \\ \hline
+    \end{tabular}
+    \caption{A comparison of PIO, eTPU and ULP features.}
+    \label{tab:comparison}
+\end{table}
 
 \section{RISC-V}
 
@@ -108,14 +121,14 @@ Rocket chip is one such implementation. Rocket chip is an open source library of
 
 Rocket chip provides multiple ways to integrate custom units: as custom RISC-V extensions directly within a core, as a coprocessor via the RoCC (Rocket Custom Coprocessor) interface, or fully decoupled and connected to the memory system via TileLink, the SoC interconnect. The ability to easily integrate custom units as closely as desired is ideal for this project and allows us to integrate PIO as closely as we desire.
 
-The Rocket Core itself is a 5-stage in-order scalar core that implements the RV32G and RV64G specifications: the base 32 \& 64 bit RISC-V spec with the M (integer multiplication \& division), A (atomics), F (32-bit floating point), and D (64-bit floating point) extensions. It has an MMU that support page-based virtual memory, a non-blocking data cache, and a front-end with branch prediction. Configuration options exposed include the optional support of the extensions mentioned, the number of floating point pipeline stages, the cache and TLB sizes, and the branch prediction buffers and tables.
+The Rocket Core itself is a 5-stage\footnote{\cite{rocketchip} describes the pipeline as 5-stage but Figure \ref{fig:rocket-core} shows 6 stages. We believe that the PC stage is not counted.} in-order scalar core that implements the RV32G and RV64G specifications: the base 32 \& 64 bit RISC-V spec with the M (integer multiplication \& division), A (atomics), F (32-bit floating point), and D (64-bit floating point) extensions. It has an MMU that support page-based virtual memory, a non-blocking data cache, and a front-end with branch prediction. Configuration options exposed include the optional support of the extensions mentioned, the number of floating point pipeline stages, the cache and TLB sizes, and the branch prediction buffers and tables.
 
 Rocket Chip is also a major component of Chipyard: an integrated SoC design, simulation and verification framework designed for agile development of specialised hardware. It includes Rocket Chip, but also accelerators such as the Hwacha vector unit generator and various domain-specific generators for cryptography, digital signal processing, and machine learning \cite{chipyard}.
 
 \begin{figure}[h!]
     \centering
     \includegraphics[width=0.9\textwidth]{../img/rocket-core.png}
-    \caption{The Rocket core pipeline \cite{rocketchip}}
+    \caption{The Rocket core pipeline \cite{rocketchip} }
     \label{fig:rocket-core}
 \end{figure}
 

@@ -7,7 +7,7 @@ The requirements for the PIO device are outlined below. Requirements are categor
 
 \begin{itemize}
     \item \textit{\textbf{MUST}} be implemented using Chisel as the primary hardware description language
-    \item \textit{\textbf{MUST}} be programmable using a small domain specific language (DSL)
+    \item \textit{\textbf{MUST}} be programmable using PIO assembly, or a variant of it
     \item \textit{\textbf{MUST}} be capable of receiving data from input GPIO pins and outputting data to output GPIO pins
     \item \textit{\textbf{SHOULD}} be configurable via a set of control registers accessible from the host system
     \item \textit{\textbf{SHOULD}} contain an interface for streaming data to/from the host system or external memory
@@ -31,7 +31,6 @@ As a third objective, we also evaluate the use of Chisel for building non-trivia
 
 \begin{itemize}
     \item Ability to express complex RTL designs
-    \item Developer ergonomics
     \item Code reuse and functional abstraction
     \item Testing and verification capabilities
     \item Interoperability with existing Verilog and FPGA tooling and code
