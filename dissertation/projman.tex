@@ -55,17 +55,31 @@ After week 13 when the block design was complete, the original timeline was most
 
 The timeline and associated tasks were tracked using an interactive Kanban board \footnote{\url{https://github.com/users/Joeyh021/projects/2/}} as part of GitHub's project features. Each of the tasks listed in Table \ref{tab:timeline}, as well as any other tasks that came up, were added to the board and categorised as either `Todo', `In Progress', `Completed' or `Blocked'. Comments were left on each task to keep notes on progress, and reference specific Git commits or code associated with the tasks. This was very valuable for keeping track of progress, especially as work ramped up and multiple tasks were being worked on towards the end of the project.
 
-\section{Source Control}
-git
-github
-CI
 
 
 \section{Tools \& Resources}
-git\&github
-scalac
-sbt
-chisel libraries
-vivado
-ubuntu workstation
-fpga board
+
+A number of software tools and hardware resources were utilised to make this project possible.
+
+\subsection{Source Control}
+
+Code was tracked using Git, the industry standard tool for source code management and version control \cite{git}. All code was committed to a single repository, with commits kept atomic and incremental to best allow for best keeping track of the repository's version history. Multiple branches were used when experimenting with different ideas, which allowed to easily switch back and forth between different prototypes. Being able to move around between different versions of the code and easily revert changes was very valuable.
+
+For remote backup of source code, GitHub was used. GitHub provides remote Git repositories which local repositories can push and pull from, allowing for convenient remote syncing \cite{github}. This was also convenient for working accross multiple machines, as work was always pushed to the remote repository and new commits could be pulled down from the remote.
+
+GitHub includes GitHub Actions, a continuous integration and deployment platform (CI/CD) that allows to automatically run tests when code is pushed to a remote repository (among other things) \cite{gha}. GitHub actions was configured to run all the full suit of unit tests every time a new commit was pushed, which helped to detect regressions in the code where changes had caused bugs that had gone unnoticed, with any failures causing a notification to be sent to the authors.
+
+\subsection{Scala \& Chisel }
+
+The Chisel compiler and standard libraries are provided as a set of libraries for Scala, so ultimately the Chisel compilation process requires both a Scala compiler to compile the Scala source to Java bytecode, and a Java Virtual Machine on which to run the it.
+
+The Scala 2 compiler, scalac (distinct from the Scala 3 compiler, dotty), is available on GitHub under the open source Apache License 2.0. This was utilised in combination with sbt, a Scala build tool (sbt is not an acronym for Scala Build Tool) to manage builds and external dependencies. sbt is also avaible on GitHub under the same open source license. sbt was especially useful as it abstracts away the complexity of compiling all of the code and libraries into a single \txt{sbt build} command.
+
+The Chisel libraries were included in the project via definitions in sbt's \txt{build.sbt} file. Chisel is also published on GitHub under the Apache License 2.0, and build artifacts are available on Maven Central fo
+
+Open source JDK builds were used, both on Linux and MacOS.
+
+\subsection{FPGA Tooling \& Resources}
+
+To synthesise Verilog and generate bitstreams for the FPGA, Xilinx's Vivado design suite and toolchain was used. Xilinx FPGA bitstream formats are entirely propietary and undocumented and Vivado is a propietary piece of software. A free version with limited functionality is made available under strict licensing terms, but the full version of the software costs \$3000 USD. Vivado was ran on the author's personal Ubuntu workstation PC. The Digilent Nexys A7-100T FPGA board utilised was provided by the School of Engineering.
+
