@@ -31,7 +31,7 @@ The project commenced at the start of October 2022 (Week 1) with the submission 
 
 \begin{table}[ht!]
     \centering
-    \begin{tabular}{|p{0.64\linewidth}|p{0.12\linewidth}|p{0.12\linewidth}|p{0.12\linewidth}|}
+    \begin{tabular}{|p{0.52\textwidth}|p{0.12\textwidth}|p{0.12\textwidth}|p{0.12\textwidth}|}
         \hline
         \multirow{2}{*}{\textbf{Task}}                                      & \multicolumn{3}{c|}{\textbf{Week(s)}}                                             \\ \cline{2-4}
                                                                             & \textbf{Timeline A}                   & \textbf{Timeline B} & \textbf{Timeline C} \\ \hline
@@ -59,7 +59,7 @@ The timeline and associated tasks were tracked using an interactive Kanban board
 
 \section{Tools \& Resources}
 
-A number of software tools and hardware resources were utilised to make this project possible.
+A number of software tools and hardware resources were utilised to make this project possible and assist with development.
 
 \subsection{Source Control}
 
@@ -75,9 +75,9 @@ The Chisel compiler and standard libraries are provided as a set of libraries fo
 
 The Scala 2 compiler, scalac (distinct from the Scala 3 compiler, dotty), is available on GitHub under the open source Apache License 2.0. This was utilised in combination with sbt, a Scala build tool (sbt is not an acronym for Scala Build Tool) to manage builds and external dependencies. sbt is also avaible on GitHub under the same open source license. sbt was especially useful as it abstracts away the complexity of compiling all of the code and libraries into a single \txt{sbt build} command.
 
-The Chisel libraries were included in the project via definitions in sbt's \txt{build.sbt} file. Chisel is also published on GitHub under the Apache License 2.0, and build artifacts are available on Maven Central fo
+The Chisel libraries were included in the project via definitions in sbt's \txt{build.sbt} file. Chisel is also published on GitHub under the Apache License 2.0. Chisel is published to the Maven central repository \footnote{\url{https://mvnrepository.com/artifact/edu.berkeley.cs/chisel3}}, where sbt downloads any declared dependencies from.
 
-Open source JDK builds were used, both on Linux and MacOS.
+Open source JDK builds were used \footnote{\url{https://openjdk.org/}}, both on Linux and MacOS.
 
 \subsection{FPGA Tooling \& Resources}
 
