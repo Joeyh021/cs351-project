@@ -79,11 +79,11 @@ The Scala 2 compiler, scalac (distinct from the Scala 3 compiler, dotty), is ava
 
 The Chisel libraries were included in the project via definitions in sbt's \txt{build.sbt} file, which allows sbt to then automatically fetch the library packages from Maven Central, where the compiled library artifacts are published for use \footnote{\url{https://mvnrepository.com/artifact/edu.berkeley.cs/chisel3}}. Chisel's source code is also published on GitHub under the Apache License 2.0.
 
-sbt bad, mill good?
+sbt did cause some issues during the course of the project due to the complexity of it's DSL for the \txt{build.sbt} file, and due to idiosyncrasies in it's dependency resolution. Alternative build tools were not explored due to sbt's ubiquity, but evaluating the use of an alternaive such as Mill \cite{Mill} or Gradle \footnote{\url{https://gradle.org/}} may have made managing builds smoother.
 
 Open source JDK builds \footnote{\url{https://openjdk.org/}} were used, both on Linux and MacOS.
 
 \subsection{FPGA Tooling \& Resources}
 
-To synthesise Verilog and generate bitstreams for the FPGA, Xilinx's Vivado design suite and toolchain was used. Xilinx FPGA bitstream formats are entirely propietary, and Vivado is also propietary software. A free version with limited functionality is made available under strict licensing terms. Vivado was ran on the author's personal Ubuntu workstation PC. The Digilent Nexys A7-100T FPGA board utilised was provided by the School of Engineering.
+To synthesise Verilog and generate bitstreams for the FPGA, Xilinx's Vivado design suite and toolchain was used. Xilinx FPGA bitstream formats are entirely propietary, and Vivado is also propietary software. A free version with limited functionality is made available under strict licensing terms. Vivado was utilised primarily on the author's personal Ubuntu workstation PC. The Digilent Nexys A7-100T FPGA board utilised was provided by the School of Engineering. The FPGA board had enough logic resources to synthesise the PIO and a full SoC, something which was evaluated early on in the project to establish that the hardware would be suitable.
 
