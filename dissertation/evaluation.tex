@@ -96,14 +96,24 @@ JMP loop         //jump back to top
     \label{lst:blinky}
 \end{listing}
 
+discuss config
+show waveform, explain
 
 \subsection{WS2812B}
 
-WS2812B intro
+WS2812B LEDs are individually-addressable RGB LEDs that are usually connected in chains to create LED strips. They are addressable in such a way that the red, green, and blue colour component of each LED in a strip can be configured. When serial data is sent to an LED, it takes the first 3 bytes for it's own colour data and re-transmits the rest for the next LED in the chain \cite{picosdk,ws2812b}.
 
-good use case because
+The LEDs are notorious for having a very specific and non-standard serial pulse-width serial format. Each bit of data is transferred as a positive pulse, with the length of the pulse determing if the bit is high or low. Bit-banging this protocol is possible but hard due to the high speeds required, and emulating it over SPI introduces a lot of additional complexity. PIO is an ideal use case for these LEDs.
 
-show program
+The RVPIO program to implement WS2812B serial is shown in Listing \ref{lst:ws2812b}.
+
+\begin{listing}[h!]
+    \begin{minted}{asm}
+
+    \end{minted}
+    \caption{RVPIO program to blink an LED}
+    \label{lst:ws2812b}
+\end{listing}
 
 discuss config and timings
 
