@@ -43,7 +43,7 @@ class ScratchRegTest extends AnyFlatSpec with
 
 An example unit test using ChiselTest is shown in Listing \ref{lst:test}. The primary method for verifying designs is by `poking' (setting) and `peeking' (reading) ports on the unit under test (\txt{uut}) while stepping the clock, and using \txt{expect} to make assertions about what the output should be. If the value in an \txt{expect} call does not match what the output, then the given error message, along with the failure of the location, is printed to assist with debugging. Waveform outputs of simulations can also be dumped to files for further inspection and debugging. An example test run for the scratch register test suite is show in Figure \ref{fig:testrun}, with both examples of passing and failing tests when invoked using sbt.
 
-The codebase includes 52 unit unit tests, with at least one testbench for each module, which provides confidence in the correctness of the designs. Tests were mostly written before or alongside the modules themselves.
+The codebase includes 52 unit unit tests, with at least one testbench for each module, which provides confidence in the correctness of the designs. Tests were mostly written before or alongside the modules themselves to enable a test-driven style of development, as discussed in Chapter \ref{ch:projman}.
 
 \begin{figure}[H]
     \centering
@@ -122,9 +122,10 @@ show waveform
 
 \subsection{SPI}
 
-SPI used for xyz
-real interface
-code
+SPI was motorola in 1979  and used for. Example of a real interface
+
+can be emulated by pIO, code shown below, example from datasheet
+
 config
 
 
