@@ -474,6 +474,8 @@ val slowClock = ClockDivider(divisor, fastClock)
 
 \section{SoC Integration}
 
+As discussed in Chapter \ref{ch:objectives}, the Chisel design must be integrated into the SoC. The top-level PIO RTL module is compiled to Verilog and imported into Vivado as a design source. The module can then be included in the block diagram like any other RTL module or IP core for synthesis targeting the Xilinx FPGA.
+
 \subsection{AXI-Lite Wrapper}
 
 The block diagram in \ref{fig:bd} shows three external interfaces that need to be connected to the rest of the SoC: the RX FIFO producer, the TX FIFO consumer, and the instruction memory and control registers.
