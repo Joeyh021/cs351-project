@@ -49,6 +49,7 @@ Some files contain one (or more) Chisel modules, while others contain bundle def
 
 \begin{figure}[H]
     \centering
+    \includegraphics[width=0.7\textwidth]{../img/pio-top.png}
     \caption{The modular, hierarchical design of the PIO.}
     \label{fig:hdl_hierarchy}
 \end{figure}
@@ -238,10 +239,9 @@ The FIFOs are capable of storing up to 4 32-bit words, and buffer data between t
 Using the TX FIFO as an example, the write end of the FIFO that data is queued into operates within the SoC clock domain, while the read end is within the PIO clock domain. We have to ensure that data consumed by the PIO is \textit{stable} when it is read. This leads to the issue of \textit{metastability}, a term that refers to signals which `do not assume stable 0 or 1 states for some duration of time at
 some point during normal operation of a design' \cite{cdc}. Appropriate synchronisation techniques are required to ensure that FIFO data is valid when read.
 
-The asynchronous FIFO design we use from the paper `Simulation and Synthesis Techniques for Asynchronous
-FIFO Design' by Cummings \cite{fifo1}. Two designs are published, one by Cummings in \cite{fifo1} and another that builds upon the first by Cummings \& Alfke in \cite{fifo2}, both detailing asynchronous FIFO designs with full Verilog source lisings. We utilise the first one and translate the code from Verilog to Chisel, as the FIFO design described is able to be constructed within the constraints imposed by Chisel's implicit clocking model.
+The asynchronous FIFO design we use from the paper `Simulation and Synthesis Techniques for Asynchronous FIFO Design' by Cummings \cite{fifo1}. Two designs are published, one by Cummings in \cite{fifo1} and another that builds upon the first by Cummings \& Alfke in \cite{fifo2}, both detailing asynchronous FIFO designs with full Verilog source lisings. We utilise the first one and translate the code from Verilog to Chisel, as the FIFO design described is able to be constructed within the constraints imposed by Chisel's implicit clocking model.
 
-The way the FIFOs work is using a read and a write pointer that index into a shared memory and are used to detect if the FIFO is full or empty. The (TX FIFO) read pointer exists in the PIO clock domain and the write pointer in the SoC clock domain. To signal to the PIO that the FIFO is empty, or to the SoC that the FIFO is full, each pointer must be synchronised into the other domain to generate the full/empty signals.
+The FIFOs work is using a read and a write pointer that index into a shared memory and are used to detect if the FIFO is full or empty. The (TX FIFO) read pointer exists in the PIO clock domain and the write pointer in the SoC clock domain. To signal to the PIO that the FIFO is empty, or to the SoC that the FIFO is full, each pointer must be synchronised into the other domain to generate the full/empty signals.
 
 Using binary counters in asynchronous FIFO designs can cause issues, as an increment can cause multiple signals to change (ie, 7 to 8 is 0111 to 1000). To overcome this, Gray code counters are used, where neighbouring numbers only differ by a single binary digit, which overcomes issues with synchronising multiple simultaneous signal changes accross clock domains.
 
