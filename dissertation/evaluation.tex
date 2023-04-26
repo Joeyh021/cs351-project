@@ -82,21 +82,23 @@ case (a, i) =>
 Three example PIO programs are presented: a square wave, an SPI interface, and WS2812B serial.
 
 \subsection{Square Wave}
+\label{sec:blink-sim}
 
 This is the most basic example, setting a pin high and then low in a loop to create a square wave that can be used to, for example, blink an LED.
 
 \begin{listing}[h!]
     \begin{minted}{asm}
 loop:
-SET PINS, 1 [1]  //set output pin high, delay 1 cycle
-SET PINS, 0      //set output pin low
+set pins, 1 [1]  //set output pin high, delay 1 cycle
+set pins, 0      //set output pin low
 JMP loop         //jump back to top
     \end{minted}
     \caption{RVPIO program to blink an LED}
     \label{lst:blinky}
 \end{listing}
 
-discuss config
+Very little configuration is required for this program. The clock divider is configured to give the desired frequency of the square wave, and the pin mapping is configured to have a single output pin and no inputs.
+
 show waveform, explain
 
 \subsection{WS2812B}
@@ -122,11 +124,24 @@ show waveform
 
 \subsection{SPI}
 
-SPI was motorola in 1979  and used for. Example of a real interface
+SPI was first introduced by Motorola in 1979 in the same line of microcontrollers as the Motorola 86k designed for serial communication between digital electronics, and now ubiquitous within electronic components and peripherals. The interface is single-master multiple-slave using (at least) four signals: a clock, a master-out slave-in (MOSI) data line, master-in slave-out (MISO) data line, and a slave select (SS) line that is used for the master to signal when data is being transferred (one slave select line is used for each slave).
 
-can be emulated by pIO, code shown below, example from datasheet
+SPI can be implemented in 4 different modes, defined by the clock polarity (CPOL) and phase (CPHA) which determine which clock edges the data is toggled and sampled on. The most common, mode 0, toggles the MOSI line on the falling edge, and samples the MISO line on the rising edge, with the default clock state of low.
 
-config
+SPI can be implemented by PIO, the code for which is given in Listing \ref{lst:spi}. The example implements duplex SPI (shifting data in and out simultaneously) in mode 0. Slave select is not implemented by this example, as it's better suited to software GPIO control \cite{rp2040}.
+
+\begin{listing}[h!]
+    \begin{minted}{asm}
+out pins, 1 side 0 [1] ; program stalls here on empty FIFO with clock low
+in  pins, 1 side 1 [1] 
+    \end{minted}
+    \caption{RVPIO program to blink an LED \cite{rp2040}}
+    \label{lst:spi}
+\end{listing}
+
+The program just shifts one bit at a time from the OSR out to the pins, and in from the pins to the ISR. The clock is controlled by the side-set. The program requires that autopull and autopush are both enabled such that data is automatically sent to/from the FIFOs. If the TX FIFO is empty, the program will stall with the clock low and no data will be sent or received. The pins mapping is configured to use a single input and a single output pin, which become the MISO and MOSI pins, with the clock being fixed to the side-set pin. The clock divider must also be configured at the correct speed for the peripheral.
+
+results
 
 
 \section{Test Software}
@@ -168,7 +183,7 @@ impl Pio {
     \label{lst:pio-rs}
 \end{listing}
 
-The example program that we run is the square wave one, to blink an LED on the FPGA board. The code to run the program is not dissimilar to the simulation: write the program and configuration to the registers and then enable the PIO. The function is shown in Listing \ref{lst:blink-sw}. The function uses \txt{unsafe} blocks to perform register writes, as the compiler cannot guarantee that the write to the hardware is always valid.
+The example program that we run is the square wave one, to blink an LED on the FPGA board. The code to run the program is not dissimilar to the simulation: write the same program and configuration as in Section \ref{sec:blink-sim} to the registers and then enable the PIO. The function is shown in Listing \ref{lst:blink-sw}. The function uses \txt{unsafe} blocks to perform register writes, as the compiler cannot guarantee that the write to the hardware is always valid.
 
 \begin{listing}[h!]
     \begin{minted}{rust}
@@ -182,8 +197,8 @@ pub fn blink(pio: &mut Pio) {
         for (a, i) in program.iter().enumerate() {
             pio.0.instructions[a].write(*i);
         }
-        pio.0.wrap_config.write(0b1_00000_00011_00000);
-        pio.0.osr_config.write(0b_11000_1_1);
+        self.0.clock_div.write((u16::MAX - 1) as u32);
+        self.0.output_pin_config.write(0x0100);
     }
     pio.enable();
 }
@@ -194,6 +209,8 @@ pub fn blink(pio: &mut Pio) {
 
 The software is compiled to a static library using Cargo and Rustc, and then linked with some startup assembly code to call the main function using GCC. The linker also uses a linker script to lay out the binary in the correct way for the included bootloader to understand. The startup code, linker script and bootloader are provided by the same GitHub repository that provided the base SoC design.
 
+The PIO input clock is 10MHz, so the clock divider is configured to be as slow as possible with a 16 bit clock divider (about 152Hz). FPGA synthesis constraints map PIO pins 0-15 to the board LEDs and pins 16-31 to the board switches, so the pin mapping is configured with PIO pin 0 as the single output pin.
+
 The software and PIO both function as expected, blinking the configured LED on the FPGA board.
 
 \section{Synthesis Results}
@@ -201,3 +218,5 @@ stuff from pres, maybe discuss timing a bit more??
 
 \section{Comparison with existing I/O hardware}
 the hard bit comparing state of the art
+
+tl;dr it's a lot bigger but at least it's flexible and i didnt really optimise it yet.
