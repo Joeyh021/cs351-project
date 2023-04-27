@@ -3,7 +3,7 @@
 
     This work explores Programmable I/O (PIO) as an alternative: flexible and highly performant I/O devices that allow for communication at high-speed using whatever protocol a programmer wishes into implement. We then integrate PIO with open-source RISC-V cores to create a flexible and compact MCU that can be used in applications where adaptable or custom interfaces are required without the need for custom hardware.
 
-    We find our PIO implementation to be capable of implementing common standard protocols such as SPI, as well as non-standard interfaces such as WS2812B serial. Around 2-3x more FPGA resources are utilised by PIO, as implemented in a Xilinx Artix-7 device, than a full-featured single purpose I/O interface, with the advantage of being far more versatile. Despite this higher relative utilisation, it may still be considered small when included as part of a larger SoC design.
+    We find our PIO implementation to be capable of implementing common standard protocols such as SPI, as well as non-standard interfaces such as WS2812B serial. When implemented in a Xilinx Artix 7 device, around 2-3x more FPGA resources are utilised by PIO than sample full-featured single purpose I/O interface hardware. Despite it's relatively high utilisation, it is still considered small when included as part of a larger SoC design, and has the advantage of being far more versatile than fixed interfaces.
 
     Through this we also evalute Chisel, a novel hardware description language, and find it to be a compelling alternative to Verilog.
 
