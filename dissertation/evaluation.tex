@@ -56,6 +56,8 @@ The codebase includes 52 unit unit tests, with at least one testbench for each m
 
 
 \section{Simulation \& Example Programs}
+\label{sec:simulations}
+
 A full simulation of the PIO block can be ran using a ChiselTest testbench for the top level PIO module, which then allows to interact with the PIO block the same as the SoC would. The memory port is used to write a program and set control registers, and then the clock is ran for a number of cycles. Instead of making assertions about the expected behaviour on a cycle-accurate level, the test waveforms are dumped to a file for manual inspection to verify that the system as a whole is functioning as expected. All internal signals can be inspected, allowing to verify the interactions between internal components as well as the correctness of the outward-facing behaviour.
 
 \begin{listing}[h!]
@@ -214,11 +216,10 @@ The PIO input clock is 10MHz, so the clock divider is configured to be as slow a
 The software and PIO both function as expected, blinking the configured LED on the FPGA board.
 
 \section{Synthesis Results}
-
-
 As discussed in Chapters \ref{ch:implementation} and \ref{ch:objectives}, an FPGA is used for implementation and the PIO block is synthesised as part of the SoC design. It is noted that the FPGA synthesis is used only for proof of concept, and that the proposed product fabricated as an ASIC, would have very different power and timing results.
 
 \subsection{Utilisation}
+\label{sec:synth-res}
 
 FPGA utilisation results are given in Table \ref{tab:pio-util}. The design uses no block RAMs, as block RAMs are synchronous-read, requiring a cycle of delay to read values from. LUTs are used to implement asynchronous-read distributed LUTRAM instead for the instrution memory and control registers. No DSPs are used as there is not heavy arithmetic in the design, and the carry chains included in the regular logic slices are sufficient. The reason the logic and memory LUT utilisation do not sum to the total is that only approx 1/3 of LUTs can be used as LUTRAM. \cite{clb_ug}.
 
@@ -280,7 +281,7 @@ The utilisation results for the entire SoC, including the Rocket core and other 
             2.71/SD Card,
             1.29/Ethernet,
             1.24/Other,
-            18.98/Unused}
+            18.97/Unused}
     \end{tikzpicture}
     \caption{SoC LUT utilisation breakdown}
     \label{fig:pie}
@@ -290,7 +291,7 @@ The utilisation results for the entire SoC, including the Rocket core and other 
 
 The design has no issues meeting timing constraints, despite the fact that the PIO is designed to execute all instructions within a single cycle. There is no negative slack in the entire design. The worst slack is 0.152ns in the SD card controller. The PIO used a 10MHz but there is plenty of slack in the design, indicating it could run at a much higher clock speed.
 
-The path with the longest total delay within the PIO itself is one from the program counter to the ISR register, with a delay of 19.04ns, 16.99ns of which is interconnect delay. The rest of the other paths with the largest delay also were mostly interconnect delay.
+The path with the longest total delay within the PIO itself is one from the program counter to the ISR register, with a delay of 19.04ns, 16.99ns of which is interconnect delay. The rest of the other paths with the largest delay also were mostly interconnect delay. The large interconnect delay suggests that the place and route process took advantage of the loose timing constraints and placed the components further apart, increasing the clock speed may lead to more efficient routing.
 
 The deepest logic paths within the PIO block are those implementing \txt{IN} and \txt{OUT} instructions: the control path from the program counter $\rightarrow$ instruction memory $\rightarrow$ instruction decoder $\rightarrow$ ISR logic $\rightarrow$ ISR register is the one with the most delay in the design, with a logic delay of 3.518ns. Similarly long delays are reported by paths that enable writes on scratch registers when shifting out from the OSR.
 
@@ -302,7 +303,16 @@ The total on chip-power of the design is 1.158W, 109mW of which is static device
 
 maybe add another pie chart here, similar deal.
 
-\section{Comparison with existing I/O hardware}
-the hard bit comparing state of the art
+\section{Comparison with RP2040 \& existing hardware}
 
-tl;dr it's a lot bigger but at least it's flexible and i didnt really optimise it yet.
+Comparing the RVPIO SoC to the RP2040 and it's PIO is difficult, as the RP2040 is a propietary piece of ASIC hardware for which no FPGA synthesis or timing results are available. However, in terms of functionality, the RVPIO is able to implement most of the same protocols as the RP2040 PIO as demonstrated in Section \ref{sec:simulations}. One major difference is that the a single RP2040 PIO block includes 4 state machines which can all execute independently, while the RVPIO is only can only execute a single program at a time, which limits the ability to implement more complex devices such as VGA controller and a USB sound card \footnote{\url{https://github.com/raspberrypi/pico-playground}}. The lack of DMA subsystem and system FIFO connections (discussed in Section \ref{sec:dma}) in the RVPIO SoC as currently implemented in the FPGA also prevents most useful applications from working outside of simulation.
+
+The SoC as a whole is only a single core compared the the RP2040's two, and is much reduced in it's feature set as a microcontroller. However, the flexibility and customisability provided by both Rocket chip and RISC-V means this could be extended easily. This is enabled and encouraged by the open source nature of the RVPIO SoC, something which is a major advantage over the RP2040.
+
+RVPIO is able to implement interfaces such as SPI and UART, but it's flexibility comes at a large cost compared to functionally equivalent fixed I/O blocks which typically use much fewer resources.
+
+Anand et al. present a high-speed and compact SPI master and slave module in \cite{spi-device} that utilises only 50 LUTs and 47 flip flops as implemented in a Xilinx Virtex 5 FPGA: about 20x less than the RVPIO. A more featured SPI master is presented by Oudjida et al. in \cite{spi-i2c} that utilises 564 LUTs, implemented in the same FPGA architecture, indicating that more features and flexibility in the hardware comes at a cost of higher utilisation.
+
+A UART device presented by Saha et al. in \cite{uart-device} utilises only 38 4-input LUTs and 28 flip flops, implemented in a Xilinx Spartan-2 FPGA, again indicating that fixed I/O hardware has the potential to be orders of magnitude more compact than RVPIO. The UART device included in the SoC template and implemented as part of the RVPIO SOC utilised XXX LUTs and YYY registers.
+
+It is a trivial result that fixed function embedded I/O controllers use less FPGA resources than RVPIO. This is in contrast to Raspberry Pi's claim that RP2040 PIO state machines `are similar in size (and therefore cost) to a standard SPI peripheral' \cite{picosdk}. There are numerous reasons that their result may contradict ours: ASIC implementation details differ vastly from that of FPGAs, and the RP2040 PIO state machine architecture is likely much more compact. Their implementation is also far more optimised, something which is not true for our proof of concept.

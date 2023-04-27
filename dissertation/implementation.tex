@@ -537,6 +537,7 @@ Vivado's block design tools recognise the exposed interface on the RTL module as
 \end{figure}
 
 \subsection{FIFOs, AXI-Stream \& DMA}
+\label{sec:dma}
 
 The FIFO interfaces would be connected using AXI-Stream to a DMA controller on the SoC. AXI-Stream allows to transfer a continuous stream of data via an AXI bus, and is more suitable than AXI-Lite or regular AXI for the FIFOs due to the need to continually stream data in bursts, as AXI is transaction-based and defines a maximum data transfer burst length \cite{axi_stream}.
 
