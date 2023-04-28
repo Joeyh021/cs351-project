@@ -1,46 +1,22 @@
 \chapter{Conclusions}
 \label{ch:conclusions}
 
-This project is a success.
+This project is a success. All of the \textit{\textbf{MUST}} requirements outlined in Chapter~\ref{ch:objectives} are met. 5/7 of the total PIO requirements and 3/7 of the total SoC requirements are met. We have successfully design, implemented and evaluated a PIO device implementing a subset of the PIO assembly language. Chisel has been evaluated as an alternative to Verilog and comparisons made in the four categories given, finding it to be superior in many categories in spite of the restrictions imposed by it's timing model.
 
-met all requirements as outlined
+The primary reason that many of the requirements weren't met was due to time constaints, especially the SoC-related ones in the latter half of the project. Not enough time was left to explore adding AXI-Stream and DMA interfaces to the system, or to experiment further with Rocket chip to integrate the PIO more closely to the CPU cores. This was due to a combination of the project having too large a scope, and the unexpected complexity involved in SoC design, the latter exacerbated by the lack of resources and documentation for Rocket chip and designing with it.
 
-good shit
+The implemented RVPIO in itself is feature complete with respect to the design we describe in Chapter~\ref{ch:design}, and is roughly functionally equivalent to the RP2040 PIO. Not being able to run PIO programs written originally for the RP2040 is a major weakness of the design, as it adds the additional step of having to modify PIO code for anyone wishing to utilise the open source PIO in their own system. The AXI-lite interface does make the design easy to integrate with other common IP however, and the proposed AXI-stream interface for the FIFOs would have made furthered this.
 
-ones we didn't meet - why
-
-critique
-
-open source technical contribution
-
-
-
-
-
-
-What is the (technical) contribution of this project? - OSS
-
-Why should this contribution be considered relevant and important for the subject of your degree?
-
-How can others make use of the work in this project?
-
-Why should this project be considered an achievement?
-
-What are the limitations of this project?
-
-- a brief summary of the main results/achievements
-- a discussion/critique of achievements referring back to the project's goals;- a consideration of difficulties
-- limitations and lessons learnt.
+The primary technical contribution of this project is the discussed open sourcing of the design. An open source PIO implementation allows for other SoC designers to take advantage of the flexibility provided by PIO to address the issues around embedded systems interfaces, and furthers the adoption of PIO within embedded systems. Also, the Chisel community is a small one, and furthering the adoption of Chisel as a HDL through the open sourcing of this project is valuable.
 
 \section{Future work}
 
 There is lots left unfinished in this project, and as such plenty of future work which may extend it.
 
-feature completeness with RVPIO 
+The most obvious continuation is to refine the design of the PIO device to bring it to feature completeness with the RP2040 PIO, which would make RVPIO much more compelling as an product and IP library, as would adding an AXI-Stream interface. There is also plenty of room for optimisation in the design, evidenced by the high resource utilisation numbers relative to other I/O hardware as discussed in Chapter~\ref{ch:evaluation}.
 
-further experimentation with rocket chip to get it actually working
+Rocket chip was barely touched as part of this project due to the limitations mentioned above, and there is plenty of room for further exploration in the same domain as this project. Expanding the system with features such as multicore, tighter PIO system integration, and multiple PIO blocks would create a more refined SoC built from the ground up around PIO would be a valuable work.
 
+A major component of this project is the evaluation of Chisel as an alternative hardware design language, but there are many more compelling alternatives in existence. Notably, SpinalHDL is a fork of an earlier version of Chisel that refines some features of Chisel such as the type system and the features for working with multiple clock domains\footnote{\url{https://github.com/SpinalHDL/SpinalHDL/issues/202}}, and Clash is a HDL embedded within Haskell that takes functional programming for RTL a step further using abstractions such as monads and lenses~\cite{clash}.
 
-further evaluation of other HDLS
-
-
+CIRCT (Circuit Intermediate Representation Compilers and Tools) is a set of tools part of the LLVM project to `apply MLIR and the LLVM development methodology to the domain of hardware', with the aim of providing reusable open-source infrastructure and libraries to the hardware design community. It includes a Python API to allow writing RTL code using Python, and the new FIRRTL compiler released in April 2023 uses the CIRCT MLIR\footnote{\url{https://github.com/chipsalliance/chisel/releases/tag/v3.6.0}}, so this would be an interesting project to explore.
