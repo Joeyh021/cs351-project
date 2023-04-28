@@ -27,7 +27,7 @@ One solution to this is to use the processing system of a microcontroller to rea
 
 The proper solution to custom interface requirements is custom hardware, but this can be very expensive. Designing a custom microprocessor and getting it manufactured can cost hundreds of thousands if not millions, and is not practical to do in small quantities. The field-programmable gate array, or FPGA is another solution: semiconductors containing a matrix of configurable logic cells based around a programmable interconnect network that can be configured to implement arbitrary logic circuits. FPGAs are very flexible, and capable of high I/O throughput with absolute precision and control. However, they can be very expensive, an order of magnitude more than most low-cost microcontrollers. FPGAs also present a very unique programming model which may be unfamiliar to most software engineers, making them hard to work with \cite{whatisfpga}.
 
-Embedded systems including FPGAs are not uncommon for high-performance or highly custom applications: Xilinx's Zynq-7000 system-on-chips (SoCs) combine programmable logic with a two ARM Cortex-A9 CPU cores as shown in figure \ref{fig:zynq}. The SoC also includes standard external interfaces such as I2C and SPI, but can be programmed to add additional interfaces through the programmable logic subsystem \cite{zynq}.
+Embedded systems including FPGAs are not uncommon for high-performance or highly custom applications: Xilinx's Zynq-7000 system-on-chips (SoCs) combine programmable logic with a two ARM Cortex-A9 CPU cores as shown in Figure \ref{fig:zynq}. The SoC also includes standard external interfaces such as I2C and SPI, but can be programmed to add additional interfaces through the programmable logic subsystem \cite{zynq}.
 
 \begin{figure}[H]
     \centering
@@ -251,7 +251,7 @@ FPGAs contain logic and interconnect resources, designed to be reconfigured into
 
 7-series devices also contain block RAMs and FIFOs that can be used to implement memory within a logic design. Memory can also be implemented as distributed RAM, or LUTRAM, which combines multiple LUTs together to implement memories \cite{fpga_arch}.
 
-FPGAs are introduced in section \ref{sec:embedded-interfaces} as I/O components in embedded systems, but they also provide an ideal platform for experimentation and verification. They are often used for prototyping hardware designs and for implementing proofs of concept such as ours.
+FPGAs are introduced in Section \ref{sec:embedded-interfaces} as I/O components in embedded systems, but they also provide an ideal platform for experimentation and verification. They are often used for prototyping hardware designs and for implementing proofs of concept such as ours.
 
 \begin{figure}[h!]
     \centering

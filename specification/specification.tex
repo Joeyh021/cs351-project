@@ -52,9 +52,9 @@ The usual solution to custom interface requirements is FPGAs (Field Programmable
 
 \subsection{Programmable IO}
 
-It is this problem that we intend to tackle: developing a flexible, low cost, easy to use hardware interface for embedded systems. The inspiration for this comes from the RP2040: a dual-core ARM-based microcontroller designed by Raspberry Pi Ltd released in 2021. The flagship feature of the RP2040 is PIO (Programmable I/O blocks): programmable state machine-based devices as described in the introduction above. Two PIO blocks are included in the RP2040, each of which includes 4 state machines, as shown in figure \ref{fig:pio-block}.
+It is this problem that we intend to tackle: developing a flexible, low cost, easy to use hardware interface for embedded systems. The inspiration for this comes from the RP2040: a dual-core ARM-based microcontroller designed by Raspberry Pi Ltd released in 2021. The flagship feature of the RP2040 is PIO (Programmable I/O blocks): programmable state machine-based devices as described in the introduction above. Two PIO blocks are included in the RP2040, each of which includes 4 state machines, as shown in Figure \ref{fig:pio-block}.
 
-The PIO state machines are designed specifically for I/O, able to move data with the speed and timing precision required for high-speed serial I/O interfaces such as SPI, UART and even VGA/DVI. As shown in figure \ref{fig:pio-sm}, each state machine consists of:
+The PIO state machines are designed specifically for I/O, able to move data with the speed and timing precision required for high-speed serial I/O interfaces such as SPI, UART and even VGA/DVI. As shown in Figure \ref{fig:pio-sm}, each state machine consists of:
 
 \begin{itemize}
     \item Two 32-bit shift registers
@@ -71,7 +71,7 @@ The PIO state machines are designed specifically for I/O, able to move data with
     \label{fig:pio-sm}
 \end{figure}
 
-The state machines are programmed using \texttt{pioasm} (PIO Assembly). An example program is shown in listing \ref{pioasm} to output a simple square wave.
+The state machines are programmed using \texttt{pioasm} (PIO Assembly). An example program is shown in Listing \ref{pioasm} to output a simple square wave.
 
 \begin{listing}[b]
     \vspace{0.5cm}
@@ -197,7 +197,7 @@ When it comes to testing, we intend to utilised test-driven development (TDD) he
 
 
 \section{Resources}
-There are a few hardware and software resources we'll need access to for completing the project. These are outlined in table \ref{tab:resources}, along with explanations for each. Free, open source software tools and libraries such as Chisel, Scala, and Rocket Chip are not included as they are freely and readily available due to their open source licenses.
+There are a few hardware and software resources we'll need access to for completing the project. These are outlined in Table \ref{tab:resources}, along with explanations for each. Free, open source software tools and libraries such as Chisel, Scala, and Rocket Chip are not included as they are freely and readily available due to their open source licenses.
 
 \begin{table}[h!]
     \centering

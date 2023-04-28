@@ -45,14 +45,14 @@ Rocket Chip is an library of hardware components for generating RISC-V SoCs, and
 
 \section{Progress \& Current Work}
 
-As it stands, the state of the project is approximately 2 weeks behind the timeline as described in table \ref{tab:timeline} of the original specification. Some time has been spent learning Chisel and Scala, and figuring out workflows to integrate Chisel with traditional Xilinx FPGA workflows and toolchains. Proof-of-concept I/O devices have been implemented using Chisel, both standalone and integrated with Rocket Cores over AXI-lite buses.
+As it stands, the state of the project is approximately 2 weeks behind the timeline as described in Table \ref{tab:timeline} of the original specification. Some time has been spent learning Chisel and Scala, and figuring out workflows to integrate Chisel with traditional Xilinx FPGA workflows and toolchains. Proof-of-concept I/O devices have been implemented using Chisel, both standalone and integrated with Rocket Cores over AXI-lite buses.
 
-As an example, listing \ref{blink} shows a proof-of-concept Chisel module with an \txt{enable} input, and an output \txt{led0} which is designed to be connected to an output LED. A counter, a standard library component, is used to create a clock divider such that the LED is toggled every time the counter wraps around back to 0. The module is parametrised over two values which are chosen at compile time: the input clock speed, and the speed at which the LED blinks. Input clock and reset are implicit in Chisel modules: all the logic for resetting register values and moving values on clock edges is implicit and generated automatically.
+As an example, Listing \ref{blink} shows a proof-of-concept Chisel module with an \txt{enable} input, and an output \txt{led0} which is designed to be connected to an output LED. A counter, a standard library component, is used to create a clock divider such that the LED is toggled every time the counter wraps around back to 0. The module is parametrised over two values which are chosen at compile time: the input clock speed, and the speed at which the LED blinks. Input clock and reset are implicit in Chisel modules: all the logic for resetting register values and moving values on clock edges is implicit and generated automatically.
 
 
 \begin{listing}[ht!]
-	\vspace{0.5cm}
-	\begin{minted}{Scala}
+    \vspace{0.5cm}
+    \begin{minted}{Scala}
 
 class Blink(clockSpeed: Int = 100_000_000, speed: Int = 1) 
   extends Module {
@@ -70,16 +70,16 @@ class Blink(clockSpeed: Int = 100_000_000, speed: Int = 1)
   }
 }
     \end{minted}
-	\caption{Scala to generate Verilog from a Chisel module}
-	\label{blink}
+    \caption{Scala to generate Verilog from a Chisel module}
+    \label{blink}
 \end{listing}
 
 
 Working with Chisel in Vivado is not as easy as working with Verilog, as Vivado has no native support for Scala. Chisel projects are instead managed as Scala projects using sbt, which handles dependencies such as the Chisel and ChiselTest libraries, and provides support for compiling, running and testing Scala projects from the command line. We have been compiling Chisel to Verilog, which is done by providing a \mintinline{text}{Main} object containing code to instantiate the top-level Chisel module, and then passing it to a call to \mintinline{text}{emitVerilog()}. Listing \ref{chiselmain} shows \mintinline{text}{Main.scala} from our project, creating the example Blink module and placing the compiled Verilog into the \mintinline{text}{/gen} directory containing all generated code. Invoked from the command line, \mintinline{text}{sbt run} will compile all the Scala sources, and then invoke the Chisel compiler to generate the Verilog.
 
 \begin{listing}[]
-	\vspace{0.5cm}
-	\begin{minted}{Scala}
+    \vspace{0.5cm}
+    \begin{minted}{Scala}
 import chisel3.stage.ChiselStage
 
 object Main extends App {
@@ -88,19 +88,19 @@ object Main extends App {
   defaultArgs ++ args)
 }
     \end{minted}
-	\caption{Scala to generate Verilog from a Chisel module}
-	\label{chiselmain}
+    \caption{Scala to generate Verilog from a Chisel module}
+    \label{chiselmain}
 \end{listing}
 
 The compiled Verilog can be imported into Vivado like any other HDL files. We have found it most convenient to specify the "do not copy sources into project" option when doing so, as this means that when the Chisel code is changed and Verilog re-compiled, the imported HDL will update in Vivado without any intervention.
 
-The full suite of Vivado tooling is then available for working with the HDL as usual. Figure \ref{fig:rtl} shows the RTL schematic for the Chisel module in listing \ref{blink}. The reported utilisation of the design is 10 LUTs and 28 flip-flops, with a total on-chip power usage of 0.236 Watts. These numbers are similar to those reported of an equivalent native Verilog design, demonstrating that the Chisel compiler is capable of generating compact and efficient circuits.
+The full suite of Vivado tooling is then available for working with the HDL as usual. Figure \ref{fig:rtl} shows the RTL schematic for the Chisel module in Listing \ref{blink}. The reported utilisation of the design is 10 LUTs and 28 flip-flops, with a total on-chip power usage of 0.236 Watts. These numbers are similar to those reported of an equivalent native Verilog design, demonstrating that the Chisel compiler is capable of generating compact and efficient circuits.
 
 \begin{figure}[h!]
-	\centering
-	\includegraphics[width=\textwidth]{../img/blinky-rtl.png}
-	\caption{The RTL schematic generated by listing \ref{blink}}
-	\label{fig:rtl}
+    \centering
+    \includegraphics[width=\textwidth]{../img/blinky-rtl.png}
+    \caption{The RTL schematic generated by Listing \ref{blink}}
+    \label{fig:rtl}
 \end{figure}
 
 
@@ -112,23 +112,23 @@ Work has not yet started on designing the intended I/O devices themselves, the p
 
 Plans are in place to reduce the scope of the project if necessary: instead of spending time integrating the devices with CPU cores, it can designed to work standalone without integrating with any other components on the FPGA. This removes the extra complexity introduced by communicating within an SoC over AXI buses or similar, and allows to focus solely on the design of the device.
 
-An updated timeline is provided in table \ref{tab:timeline2} to reflect how we expect the rest of the project to progress. It starts from Week 12, as this is the earliest point at which we expect to be able to resume work. Should the scope of the project need to be reduced as discussed above, the tasks for weeks 21-24 can be removed/reduced to give more time.
+An updated timeline is provided in Table \ref{tab:timeline2} to reflect how we expect the rest of the project to progress. It starts from Week 12, as this is the earliest point at which we expect to be able to resume work. Should the scope of the project need to be reduced as discussed above, the tasks for weeks 21-24 can be removed/reduced to give more time.
 
 \begin{table}[ht!]
-	\centering
-	\begin{tabular}{|c|l|}
-		\hline
-		\textbf{Week(s)} & \textbf{Task}                                                       \\ \hline
-		12               & Lay out high-level block design                                     \\ \hline
-		13               & Extend proof of concept into project skeleton based on block design \\ \hline
-		14-19            & Write HDL code, implementing and testing one module at a time       \\ \hline
-		20               & Develop and run integration tests in simulation                     \\ \hline
-		21-22            & Use Rocket Chip to integrate device with RISC-V cores               \\ \hline
-		23-24            & Load microcontroller onto FPGA and run tests                        \\ \hline
-		25-31            & Write report                                                        \\ \hline
-	\end{tabular}
-	\caption{Updated Project Timeline}
-	\label{tab:timeline2}
+    \centering
+    \begin{tabular}{|c|l|}
+        \hline
+        \textbf{Week(s)} & \textbf{Task}                                                       \\ \hline
+        12               & Lay out high-level block design                                     \\ \hline
+        13               & Extend proof of concept into project skeleton based on block design \\ \hline
+        14-19            & Write HDL code, implementing and testing one module at a time       \\ \hline
+        20               & Develop and run integration tests in simulation                     \\ \hline
+        21-22            & Use Rocket Chip to integrate device with RISC-V cores               \\ \hline
+        23-24            & Load microcontroller onto FPGA and run tests                        \\ \hline
+        25-31            & Write report                                                        \\ \hline
+    \end{tabular}
+    \caption{Updated Project Timeline}
+    \label{tab:timeline2}
 \end{table}
 
 % discuss each item in more detail
@@ -154,10 +154,10 @@ So far, besides the project falling behind timeline, project management has been
 Each card can be converted to an "Issue" on GitHub and added to a repository, and checklists and other commentory associated with how the progress of the task can be added. Resources used and Git commits and code associated with the progress or completion of the task can also be linked to. Figure \ref{fig:kanban} shows the state of the Kanban board as of Week 7, and the live version can be found at \url{https://github.com/users/Joeyh021/projects/2}
 
 \begin{figure}[h!]
-	\centering
-	\includegraphics[width=\textwidth]{../img/kanban-wk6.png}
-	\caption{The Project Kanban Board}
-	\label{fig:kanban}
+    \centering
+    \includegraphics[width=\textwidth]{../img/kanban-wk6.png}
+    \caption{The Project Kanban Board}
+    \label{fig:kanban}
 \end{figure}
 
 \section{Legal, Social, Ethical and Professional Issues}
@@ -181,38 +181,38 @@ The usual solution to custom interface requirements is FPGAs (Field Programmable
 
 
 \begin{figure}[b!]
-	\centering
-	\includegraphics[width=0.7\textwidth]{../img/pio-block.jpg}
-	\caption{A PIO block from the RP2040 \citep{rp2040}}
-	\label{fig:pio-block}
+    \centering
+    \includegraphics[width=0.7\textwidth]{../img/pio-block.jpg}
+    \caption{A PIO block from the RP2040 \citep{rp2040}}
+    \label{fig:pio-block}
 \end{figure}
 
 \subsubsection{Programmable IO}
 
-It is this problem that we intend to tackle: developing a flexible, low cost, easy to use hardware interface for embedded systems. The inspiration for this comes from the RP2040: a dual-core ARM-based microcontroller designed by Raspberry Pi Ltd released in 2021. The flagship feature of the RP2040 is PIO (Programmable I/O blocks): programmable state machine-based devices as described in the introduction above. Two PIO blocks are included in the RP2040, each of which includes 4 state machines, as shown in figure \ref{fig:pio-block}.
+It is this problem that we intend to tackle: developing a flexible, low cost, easy to use hardware interface for embedded systems. The inspiration for this comes from the RP2040: a dual-core ARM-based microcontroller designed by Raspberry Pi Ltd released in 2021. The flagship feature of the RP2040 is PIO (Programmable I/O blocks): programmable state machine-based devices as described in the introduction above. Two PIO blocks are included in the RP2040, each of which includes 4 state machines, as shown in Figure \ref{fig:pio-block}.
 
-The PIO state machines are designed specifically for I/O, able to move data with the speed and timing precision required for high-speed serial I/O interfaces such as SPI, UART and even VGA/DVI. As shown in figure \ref{fig:pio-sm}, each state machine consists of:
+The PIO state machines are designed specifically for I/O, able to move data with the speed and timing precision required for high-speed serial I/O interfaces such as SPI, UART and even VGA/DVI. As shown in Figure \ref{fig:pio-sm}, each state machine consists of:
 
 \begin{itemize}
-	\item Two 32-bit shift registers
-	\item Two 32-but scratch registers
-	\item A fractional clock divider
-	\item Flexible GPIO pin mapping
-	\item 4x32 bit Rx/Tx FIFOs connected to the system bus, able to sustain up to one word per clock to/from DMA
+    \item Two 32-bit shift registers
+    \item Two 32-but scratch registers
+    \item A fractional clock divider
+    \item Flexible GPIO pin mapping
+    \item 4x32 bit Rx/Tx FIFOs connected to the system bus, able to sustain up to one word per clock to/from DMA
 \end{itemize}
 
 \begin{figure}[H]
-	\centering
-	\includegraphics[width=0.7\textwidth]{../img/rp2040-state-machine.png}
-	\caption{An overview of a PIO State Machine \citep{rp2040}}
-	\label{fig:pio-sm}
+    \centering
+    \includegraphics[width=0.7\textwidth]{../img/rp2040-state-machine.png}
+    \caption{An overview of a PIO State Machine \citep{rp2040}}
+    \label{fig:pio-sm}
 \end{figure}
 
-The state machines are programmed using \texttt{pioasm} (PIO Assembly). An example program is shown in listing \ref{pioasm} to output a simple square wave.
+The state machines are programmed using \texttt{pioasm} (PIO Assembly). An example program is shown in Listing \ref{pioasm} to output a simple square wave.
 
 \begin{listing}[b]
-	\vspace{0.5cm}
-	\begin{minted}{asm}
+    \vspace{0.5cm}
+    \begin{minted}{asm}
     .program squarewave
     set pindirs, 1   ; Set pin to output
 again:
@@ -220,8 +220,8 @@ again:
     set pins, 0      ; Drive pin low
     jmp again        ; Set PC to label `again`
     \end{minted}
-	\caption{PIO Assembly to output a square wave \citep{rp2040}}
-	\label{pioasm}
+    \caption{PIO Assembly to output a square wave \citep{rp2040}}
+    \label{pioasm}
 \end{listing}
 
 \subsubsection{Time Processor Units}
@@ -229,10 +229,10 @@ again:
 Another similar hardware device from which we draw inspiration is the Time Processor Unit (TPU), a device found in some Motorola microcontrollers. The TPU is a coprocessor engine designed to handle complex timing and I/O tasks, independently of the CPU. The TPU consists of a microengine and scheduler for precision timing and execution of instructions, and up to 16 timer channels connected to external pins. Communication with the rest of the system is done via a shared dual-port RAM. Similar to the RP2040, it works by processing and executing microinstructions written by the programmer. Figure \ref{fig:tpu} shows a high-level block diagram of the TPU \citep{tpu}.
 
 \begin{figure}[]
-	\centering
-	\includegraphics[width=0.8\textwidth]{../img/tpu.jpg}
-	\caption{An overview of a Time Processor Unit \citep{tpu}}
-	\label{fig:tpu}
+    \centering
+    \includegraphics[width=0.8\textwidth]{../img/tpu.jpg}
+    \caption{An overview of a Time Processor Unit \citep{tpu}}
+    \label{fig:tpu}
 \end{figure}
 
 \subsubsection{Chisel \& Rocket Chip}
@@ -243,21 +243,21 @@ Rocket Chip is an open source SoC generator that leverages Chisel to provide a l
 
 
 \begin{figure}[h!]
-	\centering
-	\includegraphics[width=0.7\textwidth]{../img/rocket-chip.png}
-	\caption{A CPU generated using Rocket Chip \citep{rocketchip}}
-	\label{fig:rocket}
+    \centering
+    \includegraphics[width=0.7\textwidth]{../img/rocket-chip.png}
+    \caption{A CPU generated using Rocket Chip \citep{rocketchip}}
+    \label{fig:rocket}
 \end{figure}
 
 
 Figure \ref{fig:rocket} shows an example of a system built using Rocket Chip, and demonstrates the many hardware generators within the framework:
 
 \begin{itemize}
-	\item The Rocket scalar core and BOOM out-of-order superscalar core are included, both of which optionally include FPUs and have configurable functional unit pipelines and branch predictors.
-	\item A variety of cache and TLB generators are included with configurable sizes and associativities.
-	\item RoCC, the Rocket Custom Compressor interface, is a template for application specific coprocessors.
-	\item Rocket Chip includes the Tile framework for generating custom cache-coherent sub-components, and TileLink for generating interconnect and cache controllers between them.
-	\item Generators for AMBA buses are included for communication with external peripherals and controllers \citep{axi}.
+    \item The Rocket scalar core and BOOM out-of-order superscalar core are included, both of which optionally include FPUs and have configurable functional unit pipelines and branch predictors.
+    \item A variety of cache and TLB generators are included with configurable sizes and associativities.
+    \item RoCC, the Rocket Custom Compressor interface, is a template for application specific coprocessors.
+    \item Rocket Chip includes the Tile framework for generating custom cache-coherent sub-components, and TileLink for generating interconnect and cache controllers between them.
+    \item Generators for AMBA buses are included for communication with external peripherals and controllers \citep{axi}.
 \end{itemize}
 
 Rocket Chip-based designs been taped out onto silicon a total of 11 times in a variety of designs and CPUs, using silicon manufacturing processes from STMicroelectronics, Intel and TSMC. Two primary designs have been used: 28nm "Raven" chips, containing a 64-bit RISC-V
@@ -275,24 +275,24 @@ The hardware we have access to is a Xilinx Artix-7 100T on a Digilent Nexys A7 b
 Our goal is to expand on the prior work of current hardware devices and use Chisel to build open source programmable I/O devices, integrated with Rocket RISC-V cores to create a complete microcontroller. Implementation will target FPGAs, as this allows for rapid prototyping and easy implementation and testing of hardware. The requirements for the I/O device are summarised below.
 
 \begin{itemize}
-	\item The device should be implemented using Chisel
-	\item The device should have a small instruction memory for holding programs
-	\item The device should be programmable using a simple DSL
-	\item The device should execute instructions from it's memory in a standard fetch-decode-execute fashion
-	\item Instructions should execute within a single cycle
-	\item Instructions should either push data to the output pins, or shift data in from the pins
-	\item The device should contain an interface for streaming data to/from a host device or external memory
-	\item The device should be able to flexibly map inputs and outputs to external GPIO pins on the FPGA
+    \item The device should be implemented using Chisel
+    \item The device should have a small instruction memory for holding programs
+    \item The device should be programmable using a simple DSL
+    \item The device should execute instructions from it's memory in a standard fetch-decode-execute fashion
+    \item Instructions should execute within a single cycle
+    \item Instructions should either push data to the output pins, or shift data in from the pins
+    \item The device should contain an interface for streaming data to/from a host device or external memory
+    \item The device should be able to flexibly map inputs and outputs to external GPIO pins on the FPGA
 \end{itemize}
 
 The secondary goal, once the HDL implementation is complete and all requirements above are fulfilled, is to build a microcontroller integrating the devices using Rocket Chip. The requirements for this are summarised below.
 
 \begin{itemize}
-	\item The microcontroller should contain at least one CPU core, programmable using the RISC-V ISA
-	\item The microcontroller should be capable of executing instructions independently from the device
-	\item The microcontroller should connect to the device over some bus, and be able to share data via a common memory or some other bus communication protocol
-	\item The microcontroller should be capable of acting as a host for the devices, controlling initialisation and handling interrupts
-	\item The microcontroller should be compact and efficient, using as little FPGA resources and power as possible.
+    \item The microcontroller should contain at least one CPU core, programmable using the RISC-V ISA
+    \item The microcontroller should be capable of executing instructions independently from the device
+    \item The microcontroller should connect to the device over some bus, and be able to share data via a common memory or some other bus communication protocol
+    \item The microcontroller should be capable of acting as a host for the devices, controlling initialisation and handling interrupts
+    \item The microcontroller should be compact and efficient, using as little FPGA resources and power as possible.
 \end{itemize}
 
 \subsection{Timeline}
@@ -301,30 +301,30 @@ The secondary goal, once the HDL implementation is complete and all requirements
 Table \ref{tab:timeline} gives a rough timeline for the project. Each of the tasks in the table is dependent upon the previous. There are a few notes of context for this:
 
 \begin{itemize}
-	\item Week 1 is the start of Term 1
-	\item Week 15 is the start of Term 2
-	\item The final report is due in Week 31
-	\item The project work is weighted more heavily towards term 2, as I am taking more modules in term 1 than term 2.
+    \item Week 1 is the start of Term 1
+    \item Week 15 is the start of Term 2
+    \item The final report is due in Week 31
+    \item The project work is weighted more heavily towards term 2, as I am taking more modules in term 1 than term 2.
 \end{itemize}
 
 
 \begin{table}[ht!]
-	\centering
-	\begin{tabular}{|c|l|}
-		\hline
-		\textbf{Week(s)} & \textbf{Task}                                                       \\ \hline
-		1-2              & Background research                                                 \\ \hline
-		3-5              & Implement proof of concept I/O device in Chisel                     \\ \hline
-		6-8              & Lay out high-level block design                                     \\ \hline
-		8-11             & Extend proof of concept into project skeleton based on block design \\ \hline
-		12-18            & Write HDL code, implementing and testing one module at a time       \\ \hline
-		19               & Develop and run integration tests in simulation                     \\ \hline
-		20-21            & Use Rocket Chip to integrate device with RISC-V cores               \\ \hline
-		22-24            & Load microcontroller onto FPGA and run tests                        \\ \hline
-		25-31            & Write report                                                        \\ \hline
-	\end{tabular}
-	\caption{Project Timeline}
-	\label{tab:timeline}
+    \centering
+    \begin{tabular}{|c|l|}
+        \hline
+        \textbf{Week(s)} & \textbf{Task}                                                       \\ \hline
+        1-2              & Background research                                                 \\ \hline
+        3-5              & Implement proof of concept I/O device in Chisel                     \\ \hline
+        6-8              & Lay out high-level block design                                     \\ \hline
+        8-11             & Extend proof of concept into project skeleton based on block design \\ \hline
+        12-18            & Write HDL code, implementing and testing one module at a time       \\ \hline
+        19               & Develop and run integration tests in simulation                     \\ \hline
+        20-21            & Use Rocket Chip to integrate device with RISC-V cores               \\ \hline
+        22-24            & Load microcontroller onto FPGA and run tests                        \\ \hline
+        25-31            & Write report                                                        \\ \hline
+    \end{tabular}
+    \caption{Project Timeline}
+    \label{tab:timeline}
 \end{table}
 
 \subsection{Methodology}
@@ -335,20 +335,20 @@ When it comes to testing, we intend to utilised test-driven development (TDD) he
 
 
 \subsection{Resources}
-There are a few hardware and software resources we'll need access to for completing the project. These are outlined in table \ref{tab:resources}, along with explanations for each. Free, open source software tools and libraries such as Chisel, Scala, and Rocket Chip are not included as they are freely and readily available due to their open source licenses.
+There are a few hardware and software resources we'll need access to for completing the project. These are outlined in Table \ref{tab:resources}, along with explanations for each. Free, open source software tools and libraries such as Chisel, Scala, and Rocket Chip are not included as they are freely and readily available due to their open source licenses.
 
 \begin{table}[h!]
-	\centering
-	\begin{tabular}{|p{0.2\textwidth}|p{0.35\textwidth}|p{0.35\textwidth}|}
-		\hline
-		\textbf{Resource}          & \textbf{Explanation}                                                            & \textbf{Notes}                                                                                                                                   \\ \hline
-		FPGA development board     & Used as a synthesis target for the HDL, and for testing the I/O devices and SoC & I have a \href{https://digilent.com/reference/programmable-logic/nexys-a7/start}{Digilent Nexys A7 Board} on loan from the School of Engineering \\ \hline
-		Peripheral devices         & Used for testing a variety of interfaces and protocols with the I/O devices     & I intend to purchase some sensors and LEDs that are designed to connect to the FPGA board                                                        \\ \hline
-		Xilinx Vivado Design Suite & FPGA development toolchain and IDE needed for working with FPGA                 & The School of Engineering has an education license                                                                                               \\ \hline
-		Workstation PC             & Needed for running Vivado and connection to FPGA board                          & I have a sufficiently capable Linux workstation, and also have access to DCS \& SoE computer labs.                                               \\ \hline
-	\end{tabular}
-	\caption{Project Resources}
-	\label{tab:resources}
+    \centering
+    \begin{tabular}{|p{0.2\textwidth}|p{0.35\textwidth}|p{0.35\textwidth}|}
+        \hline
+        \textbf{Resource}          & \textbf{Explanation}                                                            & \textbf{Notes}                                                                                                                                   \\ \hline
+        FPGA development board     & Used as a synthesis target for the HDL, and for testing the I/O devices and SoC & I have a \href{https://digilent.com/reference/programmable-logic/nexys-a7/start}{Digilent Nexys A7 Board} on loan from the School of Engineering \\ \hline
+        Peripheral devices         & Used for testing a variety of interfaces and protocols with the I/O devices     & I intend to purchase some sensors and LEDs that are designed to connect to the FPGA board                                                        \\ \hline
+        Xilinx Vivado Design Suite & FPGA development toolchain and IDE needed for working with FPGA                 & The School of Engineering has an education license                                                                                               \\ \hline
+        Workstation PC             & Needed for running Vivado and connection to FPGA board                          & I have a sufficiently capable Linux workstation, and also have access to DCS \& SoE computer labs.                                               \\ \hline
+    \end{tabular}
+    \caption{Project Resources}
+    \label{tab:resources}
 \end{table}
 
 
