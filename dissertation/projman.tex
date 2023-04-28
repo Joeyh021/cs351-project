@@ -78,11 +78,11 @@ The Chisel compiler and standard library are provided as a set of libraries for 
 
 The Scala 2 compiler, scalac (distinct from the Scala 3 compiler, dotty), is available on GitHub under the open source Apache License 2.0. This was utilised in combination with sbt, a Scala build tool (sbt is not an acronym for Scala Build Tool) to manage builds and external dependencies. sbt is also avaible on GitHub under the same open source license. sbt was especially useful as it abstracts away the complexity of compiling all of the code and libraries into a single \txt{sbt build} command.
 
-The Chisel libraries were included in the project via definitions in sbt's \txt{build.sbt} file, which allows sbt to then automatically fetch the library packages from Maven Central, where the compiled library artifacts are published for use \footnote{\url{https://mvnrepository.com/artifact/edu.berkeley.cs/chisel3}}. Chisel's source code is also published on GitHub under the Apache License 2.0.
+The Chisel libraries were included in the project via definitions in sbt's \txt{build.sbt} file, which allows sbt to then automatically fetch the library packages from Maven Central, where the compiled library artifacts are published for use\footnote{\url{https://mvnrepository.com/artifact/edu.berkeley.cs/chisel3}}. Chisel's source code is also published on GitHub under the Apache License 2.0.
 
-sbt did cause some issues during the course of the project due to the complexity of it's DSL for the \txt{build.sbt} file, and due to idiosyncrasies in it's dependency resolution. Alternative build tools were not explored due to sbt's ubiquity, but evaluating the use of an alternaive such as Mill \cite{Mill} or Gradle \footnote{\url{https://gradle.org/}} may have made managing builds smoother.
+sbt did cause some issues during the course of the project due to the complexity of it's DSL for the \txt{build.sbt} file, and due to idiosyncrasies in it's dependency resolution. Alternative build tools were not explored due to sbt's ubiquity, but evaluating the use of an alternaive such as Mill \cite{Mill} or Gradle\footnote{\url{https://gradle.org/}} may have made managing builds smoother.
 
-Open source JDK builds \footnote{\url{https://openjdk.org/}} were used, both on Linux and MacOS.
+Open source JDK builds\footnote{\url{https://openjdk.org/}} were used, both on Linux and MacOS.
 
 \subsection{FPGA Tools}
 

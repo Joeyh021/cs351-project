@@ -325,7 +325,7 @@ The power consumption of the design is reported by Vivado post-implementation fo
 
 \section{Comparison with RP2040 \& Existing Hardware}
 
-Comparing the RVPIO SoC to the RP2040 and it's PIO is difficult, as the RP2040 is a propietary piece of ASIC hardware for which no FPGA synthesis or timing results are available. However, in terms of functionality, the RVPIO is able to implement most of the same protocols as the RP2040 PIO as demonstrated in Section \ref{sec:simulations}. One major difference is that the a single RP2040 PIO block includes 4 state machines which can all execute independently, while the RVPIO is only can only execute a single program at a time, which limits the ability to implement more complex devices such as VGA controller and a USB sound card \footnote{\url{https://github.com/raspberrypi/pico-playground}}. The lack of DMA subsystem and system FIFO connections (discussed in Section \ref{sec:dma}) in the RVPIO SoC as currently implemented in the FPGA also prevents most useful applications from working outside of simulation.
+Comparing the RVPIO SoC to the RP2040 and it's PIO is difficult, as the RP2040 is a propietary piece of ASIC hardware for which no FPGA synthesis or timing results are available. However, in terms of functionality, the RVPIO is able to implement most of the same protocols as the RP2040 PIO as demonstrated in Section \ref{sec:simulations}. One major difference is that the a single RP2040 PIO block includes 4 state machines which can all execute independently, while the RVPIO is only can only execute a single program at a time, which limits the ability to implement more complex devices such as VGA controller and a USB sound card\footnote{\url{https://github.com/raspberrypi/pico-playground}}. The lack of DMA subsystem and system FIFO connections (discussed in Section \ref{sec:dma}) in the RVPIO SoC as currently implemented in the FPGA also prevents most useful applications from working outside of simulation.
 
 The SoC as a whole is only a single core compared the the RP2040's two, and is much reduced in it's feature set as a microcontroller. However, the flexibility and customisability provided by both Rocket chip and RISC-V means this could be extended easily. This is enabled and encouraged by the open source nature of the RVPIO SoC, something which is a major advantage over the RP2040.
 
@@ -353,9 +353,9 @@ The connection operators also assists with expressing interactions between modul
 
 \textbf{Code reuse and functional abstraction}
 
-The primary method for code re-use in Verilog is modular design, which works well for abstracting over logic circuits. Chisel takes modular design a step further by enabling functional module creation and reducing the friction required to instantiate and connect modules.
+The primary method for code reuse in Verilog is modular design, which works well for abstracting over logic circuits. Chisel takes modular design a step further by enabling functional module creation and reducing the friction required to instantiate and connect modules.
 
-Being able to define bundles as types and re-use interface definitions is good, as it addresses a common source of code repetition in Verilog, and enables the use of bulk connection operators as mentioned above.
+Being able to define bundles as types and reuse interface definitions is good, as it addresses a common source of code repetition in Verilog, and enables the use of bulk connection operators as mentioned above.
 
 Reusability of designs is further enabled through high levels of parametrisability and the close interaction between Scala and the Chisel DSL, both on the type level using generic parameters, and on the class level through parameters to the module constructor. Verilog has a parameter mechanism too for supporting parametric designs, but Chisel and FIRRTL were designed from the ground up for parametrisability and reusability \cite{chisel, firrtl} and really shine in this area.
 

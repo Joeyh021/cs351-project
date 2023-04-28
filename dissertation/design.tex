@@ -6,7 +6,7 @@ In this chapter, we describe the overall design of our PIO device, and how we pl
 \section{PIO Assembly}
 \label{sec:pioasm}
 
-The design of the PIO starts with the assembly language which it executes. We re-use parts of the assembly language from the RP2040 PIO, as described in section 3.3 of the RP2040 Datasheet and shown in Table \ref{tab:pioasm}. There are 9 instructions, each 16 bits long. The upper 3 bits are the opcode, and bits 12-8 encode a delay and/or side set, the functionality of which are described in Section \ref{sec:functionality}. The rest of the instructions differ, encoding different flags and data. We omit the full description of the original PIO instruction set for brevity, instead referring to the datasheet \cite{rp2040}.
+The design of the PIO starts with the assembly language which it executes. We reuse parts of the assembly language from the RP2040 PIO, as described in section 3.3 of the RP2040 Datasheet and shown in Table \ref{tab:pioasm}. There are 9 instructions, each 16 bits long. The upper 3 bits are the opcode, and bits 12-8 encode a delay and/or side set, the functionality of which are described in Section \ref{sec:functionality}. The rest of the instructions differ, encoding different flags and data. We omit the full description of the original PIO instruction set for brevity, instead referring to the datasheet \cite{rp2040}.
 
 \begin{table}[h!]
     \centering
@@ -99,7 +99,7 @@ From this starting point is easy to move to HDL implementation: each block defin
 
 \section{SoC template}
 
-For designing the SoC, our starting point is a GitHub repository by Xilinx  engineer Eugene Tarassov \footnote{\url{https://github.com/eugene-tarassov/vivado-risc-v}}, providing scripts and source code to generate a RISC-V SoC based on Rocket chip in Vivado, Xilinx's FPGA design tool. A number of Xilinx boards are supported, including our Digilent Nexys A7 board. The block design from the Vivado project is shown in  \ref{fig:vivado-bd}.
+For designing the SoC, our starting point is a GitHub repository by Xilinx  engineer Eugene Tarassov\footnote{\url{https://github.com/eugene-tarassov/vivado-risc-v}}, providing scripts and source code to generate a RISC-V SoC based on Rocket chip in Vivado, Xilinx's FPGA design tool. A number of Xilinx boards are supported, including our Digilent Nexys A7 board. The block design from the Vivado project is shown in  \ref{fig:vivado-bd}.
 
 As well as a Rocket Chip SoC with configurable functionality (primarily the number and type of cores), RTL modules are included for an Ethernet controller, SD card controller, and UART serial port, allowing to run a fully functional system with internet connectivity on the FPGA. The peripherals are external to the Rocket chip system and connected over an AXI network. AXI (Advanced eXtensible Interface) is part of ARM's Advanced Microcontroller Bus Architecture (AMBA), and provides a protocol for interconnect in digital systems designs. It is ubiquitous within Xilinx IP, and is also used within our system \cite{axi}.
 

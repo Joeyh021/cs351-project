@@ -4,7 +4,7 @@
 \section{Code Structure \& HDL Hierarchy}
 Implementation starts from the block diagram described in Chapter \ref{ch:design}, transitioning from the high-level design to laying out the HDL blocks within a skeleton Scala project.
 
-Chisel modules are Scala classes, which allows to use existing standard Scala practices in structuring and developing the code. The code is structured as an sbt project, using a standard Java/Scala package layout \cite{scala_style}. sbt is the industry standard build tool for Scala, providing a DSL for describing the structure and dependencies of the project in the \txt{build.sbt} file, and a command line interface for building, running, and testing the project \cite{sbt}. The sbt template used is one available on GitHub as the standard Chisel sbt template \footnote{\url{https://github.com/freechipsproject/chisel-template}}.
+Chisel modules are Scala classes, which allows to use existing standard Scala practices in structuring and developing the code. The code is structured as an sbt project, using a standard Java/Scala package layout \cite{scala_style}. sbt is the industry standard build tool for Scala, providing a DSL for describing the structure and dependencies of the project in the \txt{build.sbt} file, and a command line interface for building, running, and testing the project \cite{sbt}. The sbt template used is one available on GitHub as the standard Chisel sbt template\footnote{\url{https://github.com/freechipsproject/chisel-template}}.
 
 The top-level package is \txt{dev.joeyh.pio} (the author's domain is \txt{joeyh.dev}), containing the following sub-modules and files:
 
@@ -84,7 +84,7 @@ class ScratchReg extends Module {
     \label{lst:scratch}
 \end{listing}
 
-The \txt{ReadWrite} bundle is a re-usable generic bundle definition defined within the project for use as a read/write interface. Other bundles may use it via either composition or inheritance, and the re-use of it as an abstraction accross different modules allows for easy interoperability. Listing \ref{lst:readwrite} shows how the bundles are defined. The generic parameter \txt{D <: Data} means the bundle is parametrised over any subclass of Chisel's \txt{Data} class, the root of the type hierarchy for all e types. This allows it to be re-used for reading/writing any type, for example a 32-bit \txt{UInt} as shown in Lising \ref{lst:scratch}.
+The \txt{ReadWrite} bundle is a reusable generic bundle definition defined within the project for use as a read/write interface. Other bundles may use it via either composition or inheritance, and the re of it as an abstraction accross different modules allows for easy interoperability. Listing \ref{lst:readwrite} shows how the bundles are defined. The generic parameter \txt{D <: Data} means the bundle is parametrised over any subclass of Chisel's \txt{Data} class, the root of the type hierarchy for all e types. This allows it to be reused for reading/writing any type, for example a 32-bit \txt{UInt} as shown in Lising \ref{lst:scratch}.
 
 \begin{listing}[h!]
     \vspace{0.5cm}
@@ -426,7 +426,7 @@ end
 
 \subsection{Clock Divider}
 
-The clock divider was another module that had to be written in Verilog. FIRRTL does not provide support for generating clock dividers or clock multiplexers \footnote{\url{https://github.com/chipsalliance/firrtl/issues/540}} due to the special treatment clock signals get within Chisel and FIRRTL. The module takes the 16-bit divisor value and an input clock, and outputs a slowed clock. Listing \ref{lst:clockdiv} shows the black box module. Note how \txt{Clock} is it's own distinct type within Chisel, distinct from \txt{Bool}.
+The clock divider was another module that had to be written in Verilog. FIRRTL does not provide support for generating clock dividers or clock multiplexers\footnote{\url{https://github.com/chipsalliance/firrtl/issues/540}} due to the special treatment clock signals get within Chisel and FIRRTL. The module takes the 16-bit divisor value and an input clock, and outputs a slowed clock. Listing \ref{lst:clockdiv} shows the black box module. Note how \txt{Clock} is it's own distinct type within Chisel, distinct from \txt{Bool}.
 
 \begin{listing}[h!]
     \centering
