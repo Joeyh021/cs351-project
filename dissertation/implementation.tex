@@ -84,7 +84,7 @@ class ScratchReg extends Module {
     \label{lst:scratch}
 \end{listing}
 
-The \txt{ReadWrite} bundle is a re-usable generic bundle definition defined within the project for use as a read/write interface. Other bundles may use it via either composition or inheritance, and the re-use of it as an abstraction accross different modules allows for easy interoperability. Listing \ref{lst:readwrite} shows how the bundles are defined. The generic parameter \txt{D <: Data} means the bundle is parametrised over any subclass of Chisel's \txt{Data} class, the root of the type hierarchy for all hardwar types. This allows it to be re-used for reading/writing any type, for example a 32-bit \txt{UInt} as shown in Lising \ref{lst:scratch}.
+The \txt{ReadWrite} bundle is a re-usable generic bundle definition defined within the project for use as a read/write interface. Other bundles may use it via either composition or inheritance, and the re-use of it as an abstraction accross different modules allows for easy interoperability. Listing \ref{lst:readwrite} shows how the bundles are defined. The generic parameter \txt{D <: Data} means the bundle is parametrised over any subclass of Chisel's \txt{Data} class, the root of the type hierarchy for all e types. This allows it to be re-used for reading/writing any type, for example a 32-bit \txt{UInt} as shown in Lising \ref{lst:scratch}.
 
 \begin{listing}[h!]
     \vspace{0.5cm}
@@ -103,7 +103,7 @@ class ReadWrite[D <: Data](d: D) extends Bundle {
     \label{lst:readwrite}
 \end{listing}
 
-Chisel's monodirectional \txt{:=} and bidirectional \txt{<>} connection operators make use of bundle classes as abstractions, allowing to make multiple port connections at once by recursively traversing all nested bundles. Listing \ref{lst:connection} shows an example: the execution unit module has read inputs and write output connections to both the X and Y scratch register modules. By defining the execution unit's I/O bundle using \txt{ReadWrite} bundles and the \txt{Flipped} object (which reverses the direction of all inputs/outputs in a bundle definition), it is easy to make all connections in one line.
+Chisel's monodirectional \txt{:=} and bidirectional \txt{<>} connection operators make use of bundle classes as abstractions, allowing to make multiple port connections at once by recursively traversing all nested bundles. The operators are also type safe, and will fail to compile if the trying to, for example, drive a \txt{UInt} input with a \txt{Bool}, or connect bundles of different types. Listing \ref{lst:connection} shows an example: the execution unit module has read inputs and write output connections to both the X and Y scratch register modules. By defining the execution unit's I/O bundle using \txt{ReadWrite} bundles and the \txt{Flipped} object (which reverses the direction of all inputs/outputs in a bundle definition), it is easy to make all connections in one line.
 
 \begin{listing}[h!]
     \vspace{0.5cm}
@@ -207,7 +207,7 @@ If an \txt{OUT} instruction is issued, autopull is enabled, and the OSR is empty
 
 \txt{MOVE} or \txt{SET} instructions may also read/write from the OSR. A read doesn't have any effect on the OSR or FIFO state, but a write to the OSR causes the shift count register to be reset to 0, indicating it has refilled.
 
-This logic is implemented as a lot of chained/nested \txt{when}/\txt{otherwise} blocks, which makes for not the cleanest code and synthesises to a large multiplexer, but is the best way to represent the necessary logic. The shift counter value saturates at 32, which can be tricky to work with and hard to consistently get right, so a custom saturating addition operator \txt{+!} is used to perform the threshold checks and increments. Examples is shown in Listing \ref{lst:sat_add}.
+This logic is implemented as a lot of chained/nested \txt{when}/\txt{otherwise} blocks, which makes for not the cleanest code and synthesises to a large multiplexer, but is the best way to represent the necessary logic. The shift counter value saturates at 32, which can be tricky to work with and hard to consistently get right, so a custom saturating addition operator \txt{/+|} is used to perform the threshold checks and increments. Examples usages are shown in Listing \ref{lst:sat_add}.
 
 
 \begin{listing}[h!]
@@ -221,10 +221,6 @@ val thresholdReached = (shiftCountReg /+\ shiftCount) >= thresh
     \caption{Example usages of the saturating add operator}
     \label{lst:sat_add}
 \end{listing}
-
-
-scratch reg
-read/write ports
 
 \subsubsection{ISR}
 
@@ -424,7 +420,7 @@ IOBUF #(
 );
 end
     \end{minted}
-    \caption{Instantiating IOBUFs in a loop in Verilog using Xilinx macros\cite{vivado_libs}}
+    \caption{Instantiating IOBUFs in a loop in Verilog using Xilinx macros \cite{vivado_libs}}
     \label{lst:iobuf}
 \end{listing}
 
