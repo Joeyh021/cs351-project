@@ -227,7 +227,7 @@ As discussed in Chapters \ref{ch:implementation} and \ref{ch:objectives}, an FPG
 \subsection{Utilisation}
 \label{sec:synth-res}
 
-FPGA utilisation results are given in Table \ref{tab:pio-util}. The design uses no block RAMs, as block RAMs are synchronous-read, requiring a cycle of delay to read values from. LUTs are used to implement asynchronous-read distributed LUTRAM instead for the instrution memory and control registers. No DSPs are used as there is not heavy arithmetic in the design, and the carry chains included in the regular logic slices are sufficient. The reason the logic and memory LUT utilisation do not sum to the total is that only approx 1/3 of LUTs can be used as LUTRAM. \cite{clb_ug}.
+FPGA utilisation results are given in Table \ref{tab:pio-util}, as reported by Vivado's synthesis tools. The design uses no block RAMs, as block RAMs are synchronous-read, requiring a cycle of delay to read values from. LUTs are used to implement asynchronous-read distributed LUTRAM instead for the instrution memory and control registers. No DSPs are used as there is not heavy arithmetic in the design, and the carry chains included in the regular logic slices are sufficient. The reason the logic and memory LUT utilisation do not sum to the total is that only approx 1/3 of LUTs can be used as LUTRAM \cite{clb_ug}.
 
 \begin{table}[h!]
     \centering
@@ -248,7 +248,7 @@ FPGA utilisation results are given in Table \ref{tab:pio-util}. The design uses 
         \textbf{DSP}          & 0                          & 0\%                        \\
         \hline
     \end{tabular}
-    \caption{PIO utilisation results for the PIO block}
+    \caption{FPGA resource utilisation for the PIO block implemented in a Xilinx Artix 7}
     \label{tab:pio-util}
 \end{table}
 
@@ -273,7 +273,7 @@ The utilisation results for the entire SoC, including the Rocket core and other 
         \textbf{DSP}          & 15                         & 6.25\%                     \\
         \hline
     \end{tabular}
-    \caption{FPGA resource utilisation for the entire SoC design}
+    \caption{FPGA resource utilisation for the entire SoC design implemented in a Xilinx Artix 7}
     \label{tab:soc-util}
 \end{table}
 
@@ -289,7 +289,7 @@ The utilisation results for the entire SoC, including the Rocket core and other 
             1.24/Other,
             18.97/Unused}
     \end{tikzpicture}
-    \caption{SoC LUT utilisation breakdown}
+    \caption{SoC LUT utilisation breakdown when implemented in a Xilinx Artix 7 100T}
     \label{fig:pie}
 \end{figure}
 
@@ -305,9 +305,23 @@ The deepest combinational paths \textit{through} the PIO block were those involv
 
 \subsection{Power}
 
-The total on chip-power of the design is 1.158W, 109mW of which is static device power. Most of this power budget is accounted for by the interface with the external DDR memory (842 mW), as it runs at a much faster (200 MHz) clock speed than the rest of the design. The PIO device used only 2mW, slightly more than the 1mW used by the UART device, but much less than the 12mW used by the SD card controller.
+The power consumption of the design is reported by Vivado post-implementation for analysis. Total on chip-power is 1.158W, 109mW of which is static device power. Most of this power budget is accounted for by the interface with the external DDR memory (842 mW), as it runs at a much faster (200 MHz) clock speed than the rest of the design. The PIO device used only 2mW, slightly more than the 1mW used by the UART device, but much less than the 12mW used by the SD card controller.
 
-maybe add another pie chart here, similar deal.
+\begin{figure}[H]
+    \centering
+    \begin{tikzpicture}
+        \pie[text=legend, hide number]{58.18/Rocket core,
+            8.96/DDR Memory Interface,
+            5.85/I\/O AXI Interconnect,
+            2.79/PIO,
+            2.71/SD Card,
+            1.29/Ethernet,
+            1.24/Other,
+            18.97/Unused}
+    \end{tikzpicture}
+    \caption{SoC LUT power consumption breakdown when implemented in a Xilinx Artix 7 100T}
+    \label{fig:pie2}
+\end{figure}
 
 \section{Comparison with RP2040 \& Existing Hardware}
 
@@ -328,6 +342,7 @@ It is a trivial result that fixed function embedded I/O controllers use less FPG
 As explained in Chapter \ref{ch:objectives}, one of the main objectives of this project was to evaluate Chisel as a hardware construction language against Verilog in a number of categories. The below is the author's (opinionated) evaluation in those four categories.
 
 \textbf{Ability to express complex RTL designs}
+
 There is a general theme that Chisel makes it easy to operate on a higher level of abstraction to make it easier to write more expressive hardware designs.
 
 A lot of the boilerplate that is necessary in Verilog is remove in Chisel due to the implicit clock and reset for synchronous components. This mechanism abstracts away common sources of error and brings the actual logic of the design into focus, resulting in easier and more expressive HDL code. However, the timing model enforced by this implicit clocking can be too restrictive in some cases. The example in Chapter \ref{ch:implementation} demonstrates this, where a combination of a flip flop and a multiplexer was required to implement a transparent latch.

@@ -178,7 +178,7 @@ class FirFilter(bitWidth: Int, coeffs: Seq[UInt]) extends Module {
     zs(0) := io.in 
     //shift the register contents on each cycle (clock implicit)
     for (i <- 1 until coeffs.length) {
-    zs(i) := zs(i-1)
+        zs(i) := zs(i-1)
     }
 
     // multiply the register with the coefficients
@@ -237,7 +237,7 @@ impl<DIR> GpioPin<Disabled, DIR> {
         -> GpioPin<Enabled, Input> { ... }
 }
     \end{minted}
-    \caption{Rust code modelling the state of a GPIO pin. Type parameters encode state at compile time, and \mintinline{text}|impl| blocks are parametrised to encode only valid transitions between states and prevent misuse of the API \cite{embedded_rust}.}
+    \caption{Rust code modelling the state of a GPIO pin. Type parameters encode state at compile time, and \mintinline{text}|impl| blocks are parametrised to allow only valid transitions between states and prevent misuse of the API \cite{embedded_rust}.}
     \label{lst:rust_gpio}
 \end{listing}
 
@@ -253,13 +253,14 @@ FPGAs contain logic and interconnect resources, designed to be reconfigured into
 
 FPGAs are introduced in section \ref{sec:embedded-interfaces} as I/O components in embedded systems, but they also provide an ideal platform for experimentation and verification. They are often used for prototyping hardware designs and for implementing proofs of concept such as ours.
 
-Hardware designs for FPGAs traditionally start as Verilog or VHDL code, which is then synthesised to a netlist of RTL components, then the place and route process maps the netlist to physical resources on the device and configures the interconnect. The configuration is saved to a file as a bitstream \cite{vivado_design}.
-
-The way Chisel fits into the FPGA design flow is as an extra RTL compilation step prior to synthesis. The Chisel compiler compiles Chisel modules within Scala to Verilog modules which can then be synthesised the same as any other Verilog code. This allows for re-use of existing FPGA tooling and workflows, as well as interoperability with Verilog codebases \cite{chisel}.
-
 \begin{figure}[h!]
     \centering
     \includegraphics[width=\textwidth]{../img/design-flow.png}
     \caption{The FPGA design flow}
     \label{fig:design-flow}
 \end{figure}
+
+Hardware designs for FPGAs traditionally start as Verilog or VHDL code, which is then synthesised to a netlist of RTL components, then the place and route process maps the netlist to physical resources on the device and configures the interconnect. The configuration is saved to a file as a bitstream \cite{vivado_design}.
+
+The way Chisel fits into the FPGA design flow is as an extra RTL compilation step prior to synthesis. The Chisel compiler compiles Chisel modules within Scala to Verilog modules which can then be synthesised the same as any other Verilog code. This allows for re-use of existing FPGA tooling and workflows, as well as interoperability with Verilog codebases \cite{chisel}.
+
