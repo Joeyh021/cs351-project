@@ -264,7 +264,9 @@ As discussed in Chapters \ref{ch:implementation} and \ref{ch:objectives}, an FPG
 
 FPGA utilisation results are given in Table \ref{tab:pio-util}, as reported by Vivado's synthesis tools. The design uses no block RAMs, as block RAMs are synchronous-read, requiring a cycle of delay to read values from. LUTs are used to implement asynchronous-read distributed LUTRAM instead for the instrution memory and control registers. No DSPs are used as there is not heavy arithmetic in the design, and the carry chains included in the regular logic slices are sufficient. The reason the logic and memory LUT utilisation do not sum to the total is that only approx 1/3 of LUTs can be used as LUTRAM \cite{clb_ug}.
 
-\begin{table}[h!]
+The utilisation results for the entire SoC, including the Rocket core and other I/O components, is given in Table \ref{tab:soc-util}. The single-core design fits within the available FPGA resources comfortably. With optimisation of the Rocket core configuration, removing unnecessary components such as the MMU and FPU, it would be possible to generate a dual core SoC. The utilisation breakdown for the different SoC components is given in Figure \ref{fig:pie}.
+
+\begin{table}[H]
     \centering
     \begin{tabular}{|c|c|c|}
         \hline
@@ -287,7 +289,6 @@ FPGA utilisation results are given in Table \ref{tab:pio-util}, as reported by V
     \label{tab:pio-util}
 \end{table}
 
-The utilisation results for the entire SoC, including the Rocket core and other I/O components, is given in Table \ref{tab:soc-util}. The single-core design fits within the available FPGA resources comfortably. With optimisation of the Rocket core configuration, removing unnecessary components such as the MMU and FPU, it would be possible to generate a dual core SoC. The utilisation breakdown for the different SoC components is given in Figure \ref{fig:pie}.
 
 \begin{table}[H]
     \centering
