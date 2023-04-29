@@ -81,7 +81,7 @@ case (a, i) =>
     \label{lst:sim-write-prog}
 \end{listing}
 
-Three example PIO programs are presented: a square wave, an SPI interface, and WS2812B serial.
+Three example PIO programs are presented: a square wave, an SPI interface, and WS2812 serial.
 
 \subsection{Square Wave}
 \label{sec:blink-sim}
@@ -93,7 +93,7 @@ This is the most basic example, setting a pin high and then low in a loop to cre
 loop:
 set pins, 1 [1]  //set output pin high, delay 1 cycle
 set pins, 0      //set output pin low
-JMP loop         //jump back to top
+jmp loop         //jump back to top
     \end{minted}
     \caption{RVPIO program to blink an LED}
     \label{lst:blinky}
@@ -110,28 +110,47 @@ Very little configuration is required for this program. The clock divider is con
 
 The waveform output as visualised using GTKWave\footnote{\url{https://gtkwave.sourceforge.net/}} is shown in Figure \ref{fig:wave-blink}. The program counter register value can be seen in line 4, and the current instruction being decoded in line 5. The output pin is line 6, showing the output square wave. The clock divider is configured to two, as shown by the pio system clock on line 2 being half the rate of the input clock on line 1. The program starts running at 13ps when the pio enable line is pulled high. One nuance in the timing of the device is that due to instructions being executed combinationally, the instruction at address 0 will be executted as soon as it is written to instruction memory and continually executed on each cycle, even if the PIO is not enabled. The delay cycle can be seen in the value of the instruction currently being decoded: the value A0A5 is the \txt{NOP} instruction being executed to implement the extra cycle of delay in instruction 0. The program counter is incremented after the instruction executes in the first cycle and remains there while the delay cycle associated with instruction 0 executes, but instruction 1 is not executed until all delay cycles have completed.
 
-\subsection{WS2812B}
+\subsection{WS2812}
 
-WS2812B LEDs are individually-addressable RGB LEDs that are usually connected in chains to create LED strips. They are addressable in such a way that the red, green, and blue colour component of each LED in a strip can be configured. When serial data is sent to an LED, it takes the first 3 bytes for it's own colour data and re-transmits the rest for the next LED in the chain \cite{picosdk,ws2812b}.
+WS2812 LEDs are individually-addressable RGB LEDs that are usually connected in chains to create LED strips. They are addressable in such a way that the red, green, and blue colour component of each LED in a strip can be configured. When serial data is sent to an LED, it takes the first 3 bytes for it's own colour data and re-transmits the rest for the next LED in the chain \cite{picosdk,ws2812}.
 
 The LEDs have a very specific and non-standard serial pulse-width serial format. Each bit of data is transferred as a positive pulse, with the length of the pulse determing if the bit is high or low. Bit-banging this protocol is possible but hard due to the high speeds required, and emulating it over SPI introduces a lot of additional complexity. PIO is an ideal use case for these LEDs.
 
-The RVPIO program to implement WS2812B serial is shown in Listing \ref{lst:ws2812b}.
+The RVPIO program to implement WS2812 serial is shown in Listing \ref{lst:ws2812}.
 
 \begin{listing}[h!]
     \begin{minted}{asm}
-
+out x, 1 side 0 [2] 
+jmp !x do_zero side 1 [1] // branch on the bit shifted out
+jmp bitloop side 1 [4] // remain high, long pulse
+nop side 0 [4] // drive low, short pulse
     \end{minted}
-    \caption{RVPIO program to drive WS28128B LEDs}
-    \label{lst:ws2812b}
+    \caption{RVPIO program to drive WS2812 LEDs}
+    \label{lst:ws2812}
 \end{listing}
 
-discuss config and timings
+One bit at a time is shifted from the OSR to a scratch register, which is then used as a branch condition to determine if a long or short pulse is driven. For this program, the autopull is enabled with a threshold of 24 bits (1 RGB pixel value), meaning that the OSR will be automatically refilled from the TX FIFO. If there is no data in the FIFO, the program will stall with the data line low and wait for more data.
 
-show waveform
+The waveform in Figure \ref{fig:ws2812-1} shows the PIO being enabled when line 2 goes high. The program counter on line 5 shows the PIO continually stalling on that instruction as the FIFO is empty. Lines 3 \& 4 show three words being written to the FIFO by the simulation, and then line 7 shows the OSR reading from the FIFO, after the write to the FIFO has propagated through to the read clock domain. Line 8 then shows the value of the OSR as data is shifted into it, and then the program counter value on line 5 shows the program continues execution as normal.
 
+Figure \ref{fig:ws2812-2} shows an entire 24-bit word being written out in the WS2812 serial format. The first 8 pulses represent 1s, the next 8 pulses 0s, and the final 8 1s. The LEDs use a GRB data format, so an LED receiving this data would light up cyan \cite{ws2812}.
 
-\subsection{SPI}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{../img/ws2812-1.png}
+    \caption{Waveforms showing a simulated producer writing to the PIO's TX FIFO}
+    \label{fig:ws2812-1}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{../img/ws2812-2.png}
+    \caption{Waveforms showing WS2812 data being written to an output pin}
+    \label{fig:ws2812-2}
+\end{figure}
+
+\subsection{Duplex SPI}
+\label{sec:spi}
 
 SPI was first introduced by Motorola in 1979 in the same line of microcontrollers as the Motorola 86k designed for serial communication between digital electronics, and now ubiquitous within electronic components and peripherals. The interface is single-master multiple-slave using (at least) four signals: a clock, a master-out slave-in (MOSI) data line, master-in slave-out (MISO) data line, and a slave select (SS) line that is used for the master to signal when data is being transferred (one slave select line is used for each slave).
 
@@ -141,16 +160,32 @@ SPI can be implemented by PIO, the code for which is given in Listing \ref{lst:s
 
 \begin{listing}[h!]
     \begin{minted}{asm}
-out pins, 1 side 0 [1] ; program stalls here on empty FIFO with clock low
+out pins, 1 side 0 [1] //stall here on empty with clock low
 in  pins, 1 side 1 [1] 
     \end{minted}
     \caption{RVPIO program to blink an LED \cite{rp2040}}
     \label{lst:spi}
 \end{listing}
 
-The program just shifts one bit at a time from the OSR out to the pins, and in from the pins to the ISR. The clock is controlled by the side-set. The program requires that autopull and autopush are both enabled such that data is automatically sent to/from the FIFOs. If the TX FIFO is empty, the program will stall with the clock low and no data will be sent or received. The pins mapping is configured to use a single input and a single output pin, which become the MISO and MOSI pins, with the clock being fixed to the side-set pin. The clock divider must also be configured at the correct speed for the peripheral.
+The program shifts one bit at a time from the OSR out to the pins, and in from the pins to the ISR. The clock is controlled by the side-set. The program requires that autopull and autopush are both enabled such that data is automatically sent to/from the FIFOs. If the TX FIFO is empty, the program will stall with the clock low and no data will be sent or received. The pin mapping is configured to use a single input and a single output pin, which become the MISO and MOSI pins, with the clock being fixed to the side-set pin. The clock divider must also be configured at the correct speed for the peripheral. The program wrap feature is enabled such that the program counter automatically executes the program in a loop.
 
-waves here
+Due to the restrictions discussed in Chapter \ref{ch:implementation} in working with Chisel \txt{Analog} types, the input pin cannot be driven by the testbench, so data of only 0s is read in on pin 0. Figure \ref{fig:spi-1} shows the input data being read in. The input pin on line 1 remains low, but the ISR's shift counter on line 4 shows the data being read in. Lines 5 \& 6 shows that when the ISR fills up with data, it is autopushed to the RX FIFO and the shift counter reset. Line 1 shows the SPI clock being driven by the side set pin.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{../img/spi-1.png}
+    \caption{Waveforms showing SPI input data being read}
+    \label{fig:spi-1}
+\end{figure}
+
+The TX FIFO is filled with an alternating 1010... bit pattern which is autopulled into the OSR and written directly out to the pins. Line 2 shows the bit pattern being written out synchronous with the clock on line 1. Line 3 shows the OSR value changing as bits are shifted out, and line 4 shows the shift counter increasing up to 31, when new data is autopulled from the TX FIFO.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{../img/spi-2.png}
+    \caption{Waveforms showing SPI out data being written}
+    \label{fig:spi-2}
+\end{figure}
 
 \section{Test Software}
 
@@ -345,11 +380,15 @@ As explained in Chapter \ref{ch:objectives}, one of the main objectives of this 
 
 There is a general theme that Chisel makes it easy to operate on a higher level of abstraction to make it easier to write more expressive hardware designs.
 
-A lot of the boilerplate that is necessary in Verilog is remove in Chisel due to the implicit clock and reset for synchronous components. This mechanism abstracts away common sources of error and brings the actual logic of the design into focus, resulting in easier and more expressive HDL code. However, the timing model enforced by this implicit clocking can be too restrictive in some cases. The example in Chapter \ref{ch:implementation} demonstrates this, where a combination of a flip flop and a multiplexer was required to implement a transparent latch.
+A lot of the boilerplate that is necessary in Verilog is remove in Chisel due to the implicit clock and reset for synchronous components. This mechanism abstracts away common sources of error and brings the actual logic of the design into focus, resulting in easier and more expressive HDL code.
 
 Chisel also includes a standard library of common logic components such as counters, multiplexers and shift registers, which is a something that doesn't exist in Verilog. Vendors such as Xilinx have large IP libraries, but these typically focuses on larger and more complex components. Re-usable abstractions over smaller common constructs such as counters is nice to have and helps further with expressiveness.
 
 The connection operators also assists with expressing interactions between modules and keeping the focus on expressing logic. The syntax is much clearer than the equivalent in Verilog for connecting ports in a module instantiation, and being able to connect hierarchies of bundles in one line is very useful for keeping code concise.
+
+Some abstractions within Chisel sometimes do not expose enough functionality, making it impossible to express certain logic. The timing model enforced by the implicit clocking can be too restrictive in some cases. The example in Chapter \ref{ch:implementation} demonstrates this, where a combination of a flip flop and a multiplexer was required to implement a transparent latch.
+
+The lack of support for analog or bi-directional logic was also a major pain point. The \txt{Analog} type is available to allow wiring up Verilog black boxes, but it cannot be read or written by Chisel code, making it awkward to work with and impossible to properly test using ChiselTest, as demonstrated by the duplex SPI example in Section \ref{sec:spi}
 
 \textbf{Code reuse and functional abstraction}
 
