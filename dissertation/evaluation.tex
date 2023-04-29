@@ -62,14 +62,14 @@ A full simulation of the PIO block can be ran using a ChiselTest testbench for t
 
 \begin{listing}[h!]
     \begin{minted}{scala}
-//an example program
+// an example program
 val program = Seq(
     "b111_0_0001_110_00001".U,
     "b111_0_0000_110_00000".U, 
     "b000_0_0000_000_00000".U  
 )
 uut.io.rw.write.enable.poke(true)
-//write each instruction
+// write each instruction
 program.zip(Seq(0.U, 1.U, 2.U)).foreach {
 case (a, i) =>
     uut.io.address.poke(i)
@@ -160,10 +160,10 @@ SPI can be implemented by PIO, the code for which is given in Listing \ref{lst:s
 
 \begin{listing}[h!]
     \begin{minted}{asm}
-out pins, 1 side 0 [1] ; stall here on empty with clock low
+out pins, 1 side 0 [1] ; stall here on empty, clock low
 in  pins, 1 side 1 [1] 
     \end{minted}
-    \caption{RVPIO program to blink an LED \cite{rp2040}}
+    \caption{RVPIO program implementing duplex SPI \cite{rp2040}}
     \label{lst:spi}
 \end{listing}
 
@@ -240,8 +240,8 @@ pub fn blink(pio: &mut Pio) {
         for (a, i) in program.iter().enumerate() {
             pio.0.instructions[a].write(*i);
         }
-        self.0.clock_div.write((u16::MAX - 1) as u32);
-        self.0.output_pin_config.write(0x0100);
+        pio.0.clock_div.write((u16::MAX - 1) as u32);
+        pio.0.output_pin_config.write(0x0100);
     }
     pio.enable();
 }

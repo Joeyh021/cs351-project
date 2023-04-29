@@ -54,13 +54,12 @@ The flexibility and power of the PIO blocks allow them to be programmed to imple
 
 The RP2040 PIO is programmable via a small assembly-like language called PIO assembly, or pioasm. It contains only 9 instructions, each executed within a single clock cycle. The instruction set is very dense: the PIO is capable of sampling a GPIO pin, toggling an output clock, and pushing a data word to the system all with a single instruction. An small example program is shown in Listing \ref{lst:sqwave} that outputs a square wave on a single GPIO pin. The example uses only 2 of the 9 instructions: \mintinline{text}|set| to drive GPIO pins, and \mintinline{text}|jmp| to implement a loop. More details on pioasm is given in Chapter \ref{ch:design} as part of our design discussion.
 
-\begin{listing}[b]
+\begin{listing}[H]
     \vspace{0.5cm}
     \begin{minted}{asm}
-.program squarewave
 set pindirs, 1   ; Set pin to output
 again:
-set pins, 1 [1]  ; Drive pin high then delay for one cycle
+set pins, 1 [1]  ; Drive pin high, delay for one cycle
 set pins, 0      ; Drive pin low
 jmp again        ; Set PC to label `again`
     \end{minted}
@@ -156,26 +155,28 @@ As an example, consider an arbitrary-length FIR filter implementing a convolutio
 
 
 
-\begin{listing}[h!]
+\begin{listing}[H]
     \vspace{0.5cm}
     \begin{minted}{scala}
-//parametrised by bit width (Int)
-//and Scala list of hardware coefficients (Seq[UInt])
-class FirFilter(bitWidth: Int, coeffs: Seq[UInt]) extends Module {
-    //one input and one output of this module
+// parametrised by bit width (Int)
+// and Scala list of hardware coefficients (Seq[UInt])
+class FirFilter(bitWidth: Int, coeffs: Seq[UInt]) 
+    extends Module {
+    // one input and one output of this module
     val io = IO(new Bundle {
     val in = Input(UInt(bitWidth.W))
     val out = Output(UInt(bitWidth.W))
     })
     
-    //the filter's length
+    // the filter's length
     val N = coeffs.length
 
     // register that holds N UInts
     val zs = Reg(Vec(N, UInt(bitWidth.W)))
-    //register driven by input
+    // register driven by input
     zs(0) := io.in 
-    //shift the register contents on each cycle (clock implicit)
+    // shift the register contents on each cycle 
+    // clock implicit
     for (i <- 1 until coeffs.length) {
         zs(i) := zs(i-1)
     }
@@ -204,7 +205,7 @@ This is done via a mechanism known as the borrow checker. Built into the compile
 
 Rust's strong, functional type system allows for more expressive modelling of systems at compile time. As an example, GPIO pins can be configured into a number of states (enabled/disabled, input/output, pull-up/pull-down inputs), but only certain combinations of these states are valid. The state a pin is in also determines what operations are valid on it: you can't write data to an input pin. This can be modelled on the type level using typestate programming in Rust, as show in Listing \ref{lst:rust_gpio} \cite{embedded_rust}.
 
-\begin{listing}[h!]
+\begin{listing}[H]
     \vspace{0.5cm}
     \begin{minted}{rust}
 /// GPIO interface

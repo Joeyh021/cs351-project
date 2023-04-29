@@ -111,12 +111,12 @@ Chisel's monodirectional \txt{:=} and bidirectional \txt{<>} connection operator
 class ExecUnitIO extends Bundle {
     val x    = Flipped(ReadWrite(UInt(32.W)))
     val y    = Flipped(ReadWrite(UInt(32.W)))
-    //other ports...          
+    // other ports...          
 }
 
 class ExecUnit extends Module {
     val io = IO(new ExecUnitIO)
-    //the module's implementation logic...
+    // the module's implementation logic...
 }
 
 class PIO extends Module {
@@ -124,7 +124,7 @@ class PIO extends Module {
     val yReg = Module(new ScratchReg)
     val execUnit = Module(new ExecUnit)
 
-    //connect entire bundle in one go
+    // connect entire bundle in one go
     execUnit.io.x <> xReg.io
     execUnit.io.y <> yReg.io
 }
@@ -213,10 +213,13 @@ This logic is implemented as a lot of chained/nested \txt{when}/\txt{otherwise} 
 \begin{listing}[h!]
     \vspace{0.5cm}
     \begin{minted}{scala}
-//add shiftCount to the register, capping the value at 32.
+// add shiftCount to the register
+// capping the value at 32.
 shiftCountReg := shiftCountReg /+\ shiftCount
-//boolean condition to check if shift count exceeds threshold
-val thresholdReached = (shiftCountReg /+\ shiftCount) >= thresh
+// boolean condition to check if 
+// shift count exceeds threshold
+val thresholdReached = 
+    (shiftCountReg /+\ shiftCount) >= thresh
     \end{minted}
     \caption{Example usages of the saturating add operator}
     \label{lst:sat_add}
@@ -316,7 +319,7 @@ class AsyncFifo extends RawModule {
         // write connections and logic logic ...
     }
     
-    //read clock domain (consumer)
+    // read clock domain (consumer)
     withClockAndReset(io.consumerClock, io.consumerReset) {
         val read = Module(new ReadPointer)
         // read connections and logic ...
@@ -351,10 +354,10 @@ The module is required to take as input the configured input and output base and
 \begin{listing}[h!]
     \vspace{0.5cm}
     \begin{minted}{verilog}
-//generate mask
+// generate mask
 wire [31:0] inMask  = (32'b1 << cfg_inCount)  - 32'b1; 
-wire [31:0] inputData; //data from pins
-//shift data to LSBs and mask off the number we want
+wire [31:0] inputData; // data from pins
+// shift data to LSBs and mask off the number we want
 assign read = (inputData >> cfg_inBase) & inMask; 
     \end{minted}
     \caption{Verilog for generating read data from pins}
@@ -406,7 +409,7 @@ IOBUF #(
     .IBUF_LOW_PWR("TRUE"),  
     // I/O standard from constraints
     .IOSTANDARD("LVCMOS33"),
-    //output slew rate 
+    // output slew rate 
     .SLEW("SLOW") 
 ) IOBUF_inst (
      // Buffer output (module data input)
@@ -461,7 +464,7 @@ object ClockDivider {
         clkdiv.io.outClk
     }
 }
-//example usage
+// example usage
 val slowClock = ClockDivider(divisor, fastClock)
     \end{minted}
     \caption{The \txt{ClockDivider} companion object and example usage}
