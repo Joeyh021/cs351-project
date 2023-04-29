@@ -91,9 +91,9 @@ This is the most basic example, setting a pin high and then low in a loop to cre
 \begin{listing}[h!]
     \begin{minted}{asm}
 loop:
-set pins, 1 [1]  //set output pin high, delay 1 cycle
-set pins, 0      //set output pin low
-jmp loop         //jump back to top
+set pins, 1 [1]  ; set output pin high, delay 1 cycle
+set pins, 0      ; set output pin low
+jmp loop         ; jump back to top
     \end{minted}
     \caption{RVPIO program to blink an LED}
     \label{lst:blinky}
@@ -121,9 +121,9 @@ The RVPIO program to implement WS2812 serial is shown in Listing \ref{lst:ws2812
 \begin{listing}[h!]
     \begin{minted}{asm}
 out x, 1 side 0 [2] 
-jmp !x do_zero side 1 [1] // branch on the bit shifted out
-jmp bitloop side 1 [4] // remain high, long pulse
-nop side 0 [4] // drive low, short pulse
+jmp !x do_zero side 1 [1] ; branch on the bit shifted out
+jmp bitloop side 1 [4] ; remain high, long pulse
+nop side 0 [4] ; drive low, short pulse
     \end{minted}
     \caption{RVPIO program to drive WS2812 LEDs}
     \label{lst:ws2812}
@@ -160,7 +160,7 @@ SPI can be implemented by PIO, the code for which is given in Listing \ref{lst:s
 
 \begin{listing}[h!]
     \begin{minted}{asm}
-out pins, 1 side 0 [1] //stall here on empty with clock low
+out pins, 1 side 0 [1] ; stall here on empty with clock low
 in  pins, 1 side 1 [1] 
     \end{minted}
     \caption{RVPIO program to blink an LED \cite{rp2040}}
