@@ -36,6 +36,7 @@ Our version of pioasm is much simplified from this: the number of instructions i
     \item \txt{IN} and \txt{OUT} instructions are reduced in the sources/destinations they can shift from/to. They may only shift to/from a scratch register or pins. The \txt{OUT} instruction can not shift to the program counter or execute OSR data as an instruction.
     \item \txt{PUSH} and \txt{PULL} instructions do not have the block (Blk) flag, instead behaving as if this flag was always set, which is to stall execution if the FIFO is full/empty.
     \item \txt{MOV} is restricted in it's capabilities. The original optionally could invert or reverse the bits of the data before writing, which is not implemented in RVPIO. The sources/destinations are also restricted: it cannot read from status registers, and it cannot write to the program counter or execute data as an instruction.
+    \item \txt{MOV}, \txt{SET}, and \txt{OUT} include a `pindirs' output location in the RP2040, which allows to change the pin mapping during the execution of a program. This is not available in RVPIO, pin mapping is controllable only via the control registers.
 \end{itemize}
 
 \begin{table}[h!]
@@ -74,7 +75,7 @@ One of the requirements listed in Chapter \ref{ch:objectives} is that RVPIO must
 
 The output shift register (OSR) pulls data from the TX FIFO and shifts it out to the output pins (or another register), and must be re-filled with a \txt{PULL} once empty. This is a waste of an instruction, so shift registers include a counter that counts the number of bit shifted, and can be configured to automatically refill with a \txt{PULL} once a specified shift threshold is exceeded. The same applies to the input shift register (ISR) pushing data to the RX FIFO once it is full.
 
-If a pull from the TX FIFO is attempted (either implicitly via autopull or explicitly via a \txt{PULL} instruction), and the FIFO is empty, then the system may stall. A stall causes the program counter not to increment the program counter and to re-execute the instruction on the next cycle. This allows for PIO programs to wait for data in the FIFOs before continuing to output. The same applies for attempting to push to a full RX FIFO, the system will stall until there is room in the FIFO to push the data out. Stalls may also be issued by \txt{WAIT} instructions, which cause the system to stall unless the instruction's condition is met. Any delays encoded into an instruction will be executed \textit{after} an instruction has finished stalling.
+If a pull from the TX FIFO is attempted (either implicitly via autopull or explicitly via a \txt{PULL} instruction) and the FIFO is empty, then the system will stall. A stall causes the program counter not to increment the program counter and to re-execute the instruction on the next cycle. This allows for PIO programs to wait for data in the FIFOs before continuing. The same applies for attempting to push to a full RX FIFO, the system will stall until there is room in the FIFO to push the data out. Stalls may also be issued by \txt{WAIT} instructions, which cause the system to stall unless the instruction's condition is met. Any delays encoded into an instruction will be executed \textit{after} an instruction has finished stalling.
 
 \section{Block Design}
 
@@ -83,7 +84,7 @@ Figure \ref{fig:bd} shows the high-level block design of the RVPIO device, infor
 \begin{figure}[H]
     \centering
     \includegraphics[width=1\textwidth]{../img/bd.png}
-    \caption{Block diagram of the RVPIO device}
+    \caption{Block diagram of the RVPIO device. A larger figure is given in Appendix \ref{ch:bd}.}
     \label{fig:bd}
 \end{figure}
 

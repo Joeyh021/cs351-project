@@ -11,11 +11,11 @@ The requirements for the PIO device are outlined below. Requirements are categor
     \item \textit{\textbf{MUST}} be capable of receiving data from input GPIO pins and outputting data to output GPIO pins
     \item \textit{\textbf{SHOULD}} be configurable via a set of control registers accessible from the host system
     \item \textit{\textbf{SHOULD}} contain an interface for streaming data to/from the host system or external memory
-    \item \textit{\textbf{SHOULD}} be able to flexible map inputs and outputs to physical device pins
+    \item \textit{\textbf{SHOULD}} be able to flexibly map inputs and outputs to physical device pins
     \item \textit{\textbf{COULD}} be able to run PIO programs originally written for the RP2040
 \end{itemize}
 
-A secondary objective of the implementation of the PIO device is to contribute back to the the open source hardware and Chisel community by providing an open source implementation of PIO and the PIO assembly language. The project is worked on and documented in a public GitHub repository\footnote{\url{https://github.com/Joeyh021/riscv-pio}} where it shall remain after the completion of the project for others to use within their own SoC designs.
+A secondary objective of the implementation of the PIO device is to contribute back to the the open source hardware and Chisel communities by providing an open source implementation of PIO and the PIO assembly language. The project is worked on and documented in a public GitHub repository\footnote{\url{https://github.com/Joeyh021/riscv-pio}} where it shall remain after the completion of the project for others to use within their own SoC designs.
 
 Once implementation and verification of the PIO device itself is complete, meeting most or all of the above requirements, it \textit{\textbf{SHOULD}} then be integrated with RISC-V cores using Rocket Chip to create a microcontroller system. The requirements for such system are outlined below in the same fashion.
 
@@ -38,4 +38,4 @@ As a third objective, we also evaluate the use of Chisel for building non-trivia
     \item Interoperability with existing Verilog and FPGA tooling and code
 \end{itemize}
 
-All implementation work targets FPGAs, specifically Xilinx Artix 7 devices as included on the Digilent Nexys A7-100T board. This provides us with an ideal platform for rapid prototyping and testing that we are already familiar with.
+All implementation work targets FPGAs, specifically a Xilinx Artix 7 device (XC7A100T-1CSG324C) as included on the Digilent Nexys A7-100T board. This provides us with an ideal platform for rapid prototyping and testing with which we are already familiar.
