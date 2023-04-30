@@ -207,7 +207,7 @@ If an \txt{OUT} instruction is issued, autopull is enabled, and the OSR is empty
 
 \txt{MOVE} or \txt{SET} instructions may also read/write from the OSR. A read doesn't have any effect on the OSR or FIFO state, but a write to the OSR causes the shift count register to be reset to 0, indicating it has refilled.
 
-This logic is implemented as a lot of chained/nested \txt{when}/\txt{otherwise} blocks, which makes for not the cleanest code and synthesises to a large multiplexer, but is the best way to represent the necessary logic. The shift counter value saturates at 32, which can be tricky to work with and hard to consistently get right, so a custom saturating addition operator \txt{/+|} is used to perform the threshold checks and increments. Examples usages are shown in Listing \ref{lst:sat_add}.
+This logic is implemented as a lot of chained/nested \txt{when}/\txt{otherwise} blocks, which makes for not the cleanest code and synthesises to a large multiplexer, but is the best way to represent the necessary logic. The shift counter value saturates at 32, which can be tricky to work with and hard to consistently get right, so a custom saturating addition operator \verb|/+\| is used to perform the threshold checks and increments. Examples usages are shown in Listing \ref{lst:sat_add}.
 
 
 \begin{listing}[h!]

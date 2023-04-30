@@ -1,9 +1,9 @@
 \chapter{Conclusions}
 \label{ch:conclusions}
 
-This project is a success. All of the \textit{\textbf{MUST}} requirements outlined in Chapter~\ref{ch:objectives} are met. 5/7 of the total PIO requirements and 3/7 of the total SoC requirements are met. We have successfully design, implemented and evaluated a PIO device implementing a subset of the PIO assembly language. Chisel has been evaluated as an alternative to Verilog and comparisons made in the four categories given, finding it to be superior in many categories in spite of the restrictions imposed by it's timing model.
+This project is a success. We have successfully designed, implemented and evaluated a PIO device implementing a subset of the PIO assembly language, and integrated it into an SoC to create a proof-of-concept microcontroller. Chisel has been evaluated as an alternative to Verilog and comparisons made in the four categories given, finding it to be superior in many categories in spite of the restrictions imposed by it's timing model.
 
-The primary reason that many of the requirements weren't met was due to time constaints, especially the SoC-related ones in the latter half of the project. Not enough time was left to explore adding AXI-Stream and DMA interfaces to the system, or to experiment further with Rocket chip to integrate the PIO more closely to the CPU cores. This was due to a combination of the project having too large a scope, and the unexpected complexity involved in SoC design, the latter exacerbated by the lack of resources and documentation for Rocket chip and designing with it.
+All of the \textit{\textbf{must}} requirements outlined in Chapter~\ref{ch:objectives} are met. 5/7 of the total PIO requirements and 3/7 of the total SoC requirements are met. The primary reason that many of the requirements weren't met was due to time constaints, especially the SoC-related ones in the latter half of the project. Not enough time was left to explore adding AXI-Stream and DMA interfaces to the system, or to experiment further with Rocket chip to integrate the PIO more closely to the CPU cores. This was due to a combination of the project having too large a scope, and the unexpected complexity involved in SoC design, the latter exacerbated by the lack of resources and documentation for Rocket chip and designing with it.
 
 The implemented RVPIO in itself is feature complete with respect to the design we describe in Chapter~\ref{ch:design}, and is roughly functionally equivalent to the RP2040 PIO. Not being able to run PIO programs written originally for the RP2040 is a major weakness of the design, as it adds the additional step of having to modify PIO code for anyone wishing to utilise the open source PIO in their own system. The AXI-lite interface does make the design easy to integrate with other common IP however, and the proposed AXI-stream interface for the FIFOs would have made furthered this.
 
@@ -11,7 +11,7 @@ The primary technical contribution of this project is the discussed open sourcin
 
 \section{Future work}
 
-There is lots left unfinished in this project, and as such plenty of future work which may extend it.
+There is lots left unfinished in this project, and therefore plenty of future work which may extend it.
 
 The most obvious continuation is to refine the design of the PIO device to bring it to feature completeness with the RP2040 PIO, which would make RVPIO much more compelling as an product and IP library, as would adding an AXI-Stream interface. There is also plenty of room for optimisation in the design, evidenced by the high resource utilisation numbers relative to other I/O hardware as discussed in Chapter~\ref{ch:evaluation}.
 

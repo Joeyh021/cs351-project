@@ -32,7 +32,7 @@ Our version of pioasm is much simplified from this: the number of instructions i
 \begin{itemize}
     \item The \txt{IRQ} instruction is removed. This is to simplify integration of the PIO into the SoC: handling interrupts in either direction is a very involved process on both the hardware and software level and is left out of scope for this project.
     \item Bit 12 is always side-set, and only 1 pin may be set/cleared using this. The side-set pin is fixed in the hardware.
-    \item The \txt{WAIT} instruction can only wait on an input pin changing state, instead of being configurable to wait on an \txt{IRQ} instead. The exact pin that is waited on is configurable via a control register.
+    \item The \txt{WAIT} instruction can only wait on an input pin changing state, instead of being configurable to wait on an \txt{IRQ} instead. The pin that is waited on is selected by an instruction operand.
     \item \txt{IN} and \txt{OUT} instructions are reduced in the sources/destinations they can shift from/to. They may only shift to/from a scratch register or pins. The \txt{OUT} instruction can not shift to the program counter or execute OSR data as an instruction.
     \item \txt{PUSH} and \txt{PULL} instructions do not have the block (Blk) flag, instead behaving as if this flag was always set, which is to stall execution if the FIFO is full/empty.
     \item \txt{MOV} is restricted in it's capabilities. The original optionally could invert or reverse the bits of the data before writing, which is not implemented in RVPIO. The sources/destinations are also restricted: it cannot read from status registers, and it cannot write to the program counter or execute data as an instruction.
@@ -82,7 +82,7 @@ Figure \ref{fig:bd} shows the high-level block design of the RVPIO device, infor
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=1.1\textwidth]{../img/bd.png}
+    \includegraphics[width=1\textwidth]{../img/bd.png}
     \caption{Block diagram of the RVPIO device}
     \label{fig:bd}
 \end{figure}
@@ -107,7 +107,7 @@ This gives two options for integrating PIO: as part of the Rocket system, or as 
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=1.1\textwidth]{../img/block-design.png}
+    \includegraphics[width=1\textwidth]{../img/block-design.png}
     \caption{The Vivado block diagram which we integrate PIO into}
     \label{fig:vivado-bd}
 \end{figure}

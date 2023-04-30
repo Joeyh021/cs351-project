@@ -280,3 +280,6 @@ TSWLatexianTemp*
 *.pdf
 
 !.vscode
+
+# pdfs we want to commit
+!pio-block.pdf
