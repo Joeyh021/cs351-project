@@ -125,6 +125,7 @@ Rocket chip is one such implementation. Rocket chip is an open source library of
 \end{figure}
 
 Rocket chip provides multiple ways to integrate custom units: as custom RISC-V extensions directly within a core, as a coprocessor via the RoCC (Rocket Custom Coprocessor) interface, or fully decoupled and connected to the memory system via TileLink, the SoC interconnect. The ability to easily integrate custom units as closely as desired is ideal for this project and allows us to integrate PIO as closely as we desire.
+\interfootnotelinepenalty=10000
 
 The Rocket Core itself is a 5-stage\footnote{The pipeline is described as 5 stage in \cite{rocketchip}, but Figure \ref{fig:rocket-core} shows 6 stages. We believe that the PC stage is not counted.} in-order scalar core that implements the RV32G and RV64G specifications: the base 32 \& 64 bit RISC-V spec with the M (integer multiplication \& division), A (atomics), F (32-bit floating point), and D (64-bit floating point) extensions. It has an MMU that support page-based virtual memory, a non-blocking data cache, and a front-end with branch prediction. Configuration options exposed include the optional support of the extensions mentioned, the number of floating point pipeline stages, the cache and TLB sizes, and the branch prediction buffers and tables.
 
